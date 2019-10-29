@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="KubeCon 2019 上海 CRD 相关 Session 小记">
+<meta itemprop="description" content="这周借着参加 KubeCon 之名跑到会场划了三天水，最后一天良心发现顿觉需要记录一下，同时也顺带再消化一遍，遂有此文。 整个三天里除了 keynote 之外跑去听得最多的就">
+
+
+<meta itemprop="dateModified" content="2019-07-27T12:19:47&#43;08:00" />
+<meta itemprop="wordCount" content="4684">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="KubeCon 2019 上海 CRD 相关 Session 小记" />
+<meta property="og:description" content="这周借着参加 KubeCon 之名跑到会场划了三天水，最后一天良心发现顿觉需要记录一下，同时也顺带再消化一遍，遂有此文。 整个三天里除了 keynote 之外跑去听得最多的就" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/kubecon-shanghai-2019/" />
+<meta property="article:published_time" content="2019-07-27T12:19:24+08:00" />
+<meta property="article:modified_time" content="2019-07-27T12:19:47+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="KubeCon 2019 上海 CRD 相关 Session 小记"/>
+<meta name="twitter:description" content="这周借着参加 KubeCon 之名跑到会场划了三天水，最后一天良心发现顿觉需要记录一下，同时也顺带再消化一遍，遂有此文。 整个三天里除了 keynote 之外跑去听得最多的就"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>KubeCon 2019 上海 CRD 相关 Session 小记</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jul 27, 2019</span></div>
+				<h1>KubeCon 2019 上海 CRD 相关 Session 小记</h1>
+			</header>
+			<div class="content">
+				
+
+<p>这周借着参加 KubeCon 之名跑到会场划了三天水，最后一天良心发现顿觉需要记录一下，同时也顺带再消化一遍，遂有此文。</p>
+
+<p>整个三天里除了 keynote 之外跑去听得最多的就是大家在 CRD 和自定义控制器上的各种实践，也就是各种 &ldquo;Operator&rdquo;。虽然 Operator 本身已经是一种大家司空见惯的模式，但具体如何为生产环境中的
+场景与问题定义 CRD 还是一个很有意思的事情。有些设计能够启发我去修正一些以往浅薄的认知，比如蚂蚁的 <code>CafeDeployment</code> 试图去解决的问题让我感受到 k8s 的 API 离&rdquo;一个好用的 PaaS&rdquo;还是有距离的；
+有些 talk 能在范式方面给我一些启发，比如某个 talk 里提到的多个业务组之间如何基于 CRD 协作；还有一些&rdquo;意料之外但又情理之中&rdquo;的设计，让人大开眼界，直呼&rdquo;我怎么没想到呢？&rdquo;，比如 OpenCruise 里
+的 <code>SidecarSet</code> 。</p>
+
+<p>另外还听了一些偏 ops 的 session 和我司 TiKV 的 session，也有很多收获。但我想写的更聚焦一点，因此就只提一下这些 session 里和 CRD 或自定义控制器有关联的部分。下面就开始吧！</p>
+
+<h2 id="crd-no-longer-2nd-class-thing">CRD no longer 2nd class thing<a href="#crd-no-longer-2nd-class-thing" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><a href="https://static.sched.com/hosted%5Ffiles/kccncosschn19chi/da/Jing%20Xu%20Xing%20Yang%20June%2024%20Chinese%20UPDATED%20V2.pptx">slides</a></p>
+
+<p>第一天傍晚一个专门安利 CRD 的 Keynote。大致内容是讲了一个故事：</p>
+
+<p>（以下内容经过博主个人演绎，我也不知道有没有记岔&hellip;）</p>
+
+<blockquote>
+<ul>
+<li>sig-storage: 我们想加一个 PV 备份的功能，希望在 k8s 内增加一个内置 API 对象 &ldquo;VolumeSnapshot&rdquo; 来描述对一个 PV 的快照。</li>
+<li>sig-architecture: 不同意增加内置对象，请使用 CRD</li>
+<li>sig-storage: 什么！CRD 不是给第三方扩展 k8s 用的吗? 我们现在是要 <strong>给 Kubernetes 主干增加功能</strong></li>
+</ul>
+</blockquote>
+
+<p>然后呢，keynote 里表示 sig-architecture 是对的，CRD 在 Kubernetes 中已经是 &ldquo;一等公民&rdquo;，最后带大家入了个门，讲了一下 CRD 的概念，用法以及 kubebuilder。</p>
+
+<p>假如由我来给这个 keynote 一句总结，那就是 <strong>Kubernetes 本身都在用 CRD 加新功能了，我们还有啥理由不用吗？</strong></p>
+
+<p><img src="/crd-1st-class.png" alt="crd-1st-class.png" width="800px" />
+(一张 slides 的截图)</p>
+
+<h2 id="to-crd-or-not-to-crd">To CRD or not to CRD<a href="#to-crd-or-not-to-crd" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><a href="https://static.sched.com/hosted%5Ffiles/kccncosschn19chi/1a/To%20CRD%20v2.0%20%281%29.pdf">Slides</a></p>
+
+<p>这个 session 虽然叫 &ldquo;使用还是不使用 CRD，这是一个问题&rdquo;，最后却没有给出确切的标准来区分某个场景该不该使用 CRD（当然，即使有这样的&rdquo;标准&rdquo;，那也是充满争议的）。但这个 session
+仍然诚意十足，不仅简明扼要地列出了使用 CRD 需要考虑的问题，还探讨了 CRD 除了扩展 Kubernetes 之外本身的架构意义。这一点让我觉得，很多本身不需要和 k8s 做整合的场景有可能
+也可以通过 CRD 放到 k8s 上来做，进而得到一些架构和编程模型上的收益。</p>
+
+<p>先看 slides 里的一个例子，我们有一个微服务体系，分别有 Room、Light、Lock 三个 service：</p>
+
+<figure>
+    <img src="/crd-microservices.png" width="800px"/> 
+</figure>
+
+
+<p>而当用户想打开房间里的某盏灯时，则需要发送一个 Rest 请求：</p>
+<div class="highlight"><pre class="chroma"><code class="language-nil" data-lang="nil">{
+ “action”: “switch_on”,
+ “lights”: [
+ “lamp-1”,
+ “lamp-2”
+ ],
+ “room”: “kitchen”
+}</code></pre></div>
+<p>接下来一个可能的流程是：</p>
+
+<ol>
+<li>Room Service 调用 Light Service，打开 <code>lamp-1</code> 和 <code>lamp-2</code> 这两盏灯</li>
+<li>Light Service 打开这两盏灯，更新数据库中等的状态，返回响应给 Room Service</li>
+<li>Room Service 收到影响，更新 Room 对象中灯的亮度</li>
+<li>Room Service 返回响应给用户</li>
+</ol>
+
+<p>这个系统要做好，其实要解决不少问题：</p>
+
+<ul>
+<li>每个服务都要解决自己的存储问题：字面意思</li>
+<li>每个服务都要解决高可用问题：字面意思</li>
+<li>可靠性问题：个人解读一下，我们发送请求给 Room 服务更新房间，Room 服务再调用 Light 服务打开灯，这时候假如 Light 服务有问题，怎么办？诸如此类的问题最后会需要去做服务间的重试限流熔断这类事</li>
+<li>服务间的 API 规范：这个大家应该都有感受，每个公司都会制定服务间的调用规范</li>
+<li>组与组之间围绕 API 的协作：&rdquo;过程式&rdquo; 的 API 其实协作起来有很多问题，比如过长的链式调用，循环调用，这些都得通过架构和框架设计去防患于未然</li>
+</ul>
+
+<p>接下来就开脑洞了：我们把这三个 service，全部用 k8s 的自定义 controller 来实现怎么样？</p>
+
+<figure>
+    <img src="/crd-controllers.png" width="800px"/> 
+</figure>
+
+
+<p>这时候，我们就可以声明式 API 来开灯了：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Room<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w"> </span>name<span class="p">:</span><span class="w"> </span>kitchen<span class="w">
+</span><span class="w"> </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w"> </span>lights<span class="p">:</span><span class="w">
+</span><span class="w"> </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>lamp<span class="m">-1</span><span class="w">
+</span><span class="w"> </span>brightness<span class="p">:</span><span class="w"> </span><span class="m">0.5</span><span class="w">
+</span><span class="w"> </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>lamp<span class="m">-2</span><span class="w">
+</span><span class="w"> </span>brightness<span class="p">:</span><span class="w"> </span><span class="m">1.0</span></code></pre></div>
+<p>接下来的流程就是：</p>
+
+<ol>
+<li>Room Controller watch 到这个对象的期望状态（spec）变更；</li>
+
+<li><p>Room Controller 更新对应的 Light 对象的亮度（更新 spec）；</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Light<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>lamp<span class="m">-1</span><span class="w">
+</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>brightness<span class="p">:</span><span class="w"> </span><span class="m">0.5</span><span class="w">
+</span><span class="w"></span>status<span class="p">:</span><span class="w">
+</span><span class="w">  </span>currentBrightness<span class="p">:</span><span class="w"> </span><span class="m">0</span></code></pre></div></li>
+
+<li><p>Light Controller watch 到 <code>lamp-1</code> 和 <code>lamp-2</code> 这两个对象的期望亮度(spec)发生变化</p></li>
+
+<li><p>Light Controller 调整这两个灯的亮度，并更新目标对象的 <code>.status.currentBrightness</code></p></li>
+
+<li><p>Room Controller watch 到两个灯的 status 发生变化，以此为依据更新自己的 status</p></li>
+</ol>
+
+<p>可以发现整个协作的核心是 k8s 的 api-server，并且所有组件和逻辑都围绕着声明式 API 进行设计。这个设计下：</p>
+
+<ul>
+<li>存储问题简化（etcd 解决）</li>
+<li>高可用问题简化（k8s 部署 3 个 api-server 自然就高可用了，controller 反正随时可以拉起来）</li>
+<li>可靠性优化（控制循环与声明式 API 这种可以不断自我修正的机制本身就适合解决可靠性）</li>
+<li>不用考虑 API 规范和 API 协作（自定义控制器基本上就按这个模式写了）</li>
+</ul>
+
+<p>这里要额外解释一下 API 协作，大家可以想象一下，这个例子里用 controller 的方式，协作的心智成本是很低的，我们只需要看一下其它组的 API（也就是 CRD）里的字段含义，然后开始&rdquo;声明自己要干嘛&rdquo;
+就可以了。</p>
+
+<p>当然，其实这两者的对比是不公平的，因为例子一基本上等于没有框架也没有 PaaS 在裸写应用，而例子二是在现成的架子上搭东西。真正搞开发的时候，底下的数据库，高可用以及由框架或 Mesh 定义的规范与
+协作形式基本也都是做完一遍之后开箱即用的，整体成本和自己整一个生产级 kubernetes 孰高孰低还不好说。另外，CRD 虽然改声明方便，但用过 k8s 原生对象的都知道，改 spec 前我们必须得对下面的
+机制有所了解，才能明白改了之后到底能否实现自己的需求，因此这个&rdquo;心智成本&rdquo;也只是变了一下形式而已。最后，这个&rdquo;房间、灯、锁&rdquo;的例子其实选得很好，因为这个系统里组件明确并且都需要去协调一个不可靠的
+模块（灯、锁这些设备），假如是我们只是在虚拟账户间转个账对个账啥的，恐怕就很难塞进这个模式里去了。</p>
+
+<p>因此，这是个挺有启发性的例子，但不是一个&rdquo;安利 CRD&rdquo;的例子，整体还是非常中立的。</p>
+
+<p>于是乎，Slides 里紧接着就讲了使用与不使用 CRD 的优缺点对比：</p>
+
+<ul>
+<li>数据模型受限：etcd 并不是关系型数据库</li>
+<li>系统整体性能基本取决于 etcd</li>
+<li>声明式 vs 命令式，没有好不好，只有适不适合</li>
+<li>团队合作：CRD 很有优势，每个团队提供 CRD 和 controller，可以互相 watch 对方的 API 对象</li>
+</ul>
+
+<p>当然了，到底用不用 CRD 还是取决于个人理解的，只是不要忘了(Slides 的最后一页)：</p>
+
+<figure>
+    <img src="/crd-quote.png" width="800px"/> 
+</figure>
+
+
+<h2 id="cafedeployment">CafeDeployment<a href="#cafedeployment" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><a href="https://static.sched.com/hosted%5Ffiles/kccncosschn19eng/7b/extending%5Fdeployment%5Ffor%5Finternet%5Ffinancial%5Fmission%5Fcritical%5Fscenarios.pdf">Slides</a></p>
+
+<p>这个 talk 的中文题目是&rdquo;为互联网金融关键任务场景扩展部署&rdquo;，相当&hellip;不知所云，假如不是看了眼英文名&rdquo;Extending Deployment for Internet Financial Mission-Critical Scenarios&rdquo;,
+我差点错过了这个精彩的 session&hellip;</p>
+
+<p>Session 的主角是 <a href="https://zhuanlan.zhihu.com/p/69753427">CafeDeployment</a>，后来看到在 KubeCon 前几天蚂蚁的公众号就发文章讲了这个东西，大家可以直接前往 <a href="https://zhuanlan.zhihu.com/p/69753427">原文</a> 看看它解决的问题和具体的技术场景，假如觉得太长不看，也可以看下面的
+三个 Key Takeaways：</p>
+
+<ol>
+<li><code>CafeDeployment</code> 是一个顶级对象，就像 Deployment 管理 ReplicaSet 一样， <code>CafeDeployment</code> 下面管理一个叫做 InPlaceSet 的对象。 <code>CafeDeployment</code> 的职责主要是按照策略 *在多个机房内各自创建一个 InPlaceSet*，来做容灾，同时提供部署策略的控制，比如现场演示的就是新版本分三批发布，每批升级中间需要手工确认（改 Annotation）</li>
+<li>InPlaceSet 提供了 Pod 本地升级的能力（实现细节没讲，但是要 PoC 的话其实在 Controller 里依次修改 Pod 的镜像就行，修改后 Pod 里的容器会 Restart 使用新镜像，Pod 并不会重建）</li>
+<li>用 Readiness Gate 控制了 Pod 本地升级时的上下线过程。大体就是通过设置 readiness gate 为 true 或 false 来设置 Pod 的状态是否为 Ready，从而协调 endpoints，具体逻辑可以看原文</li>
+</ol>
+
+<p>一开始听这个 session 的时候，讲需求的时候说现在的策略无法满足跨机房高可用部署、无法实现优雅升级我其实是很疑惑的：这不是 anti-affinity 以及 preStopHook + readinessGate 就能实现了吗？
+听到 demo 和实现部分才知道， <code>CafeDeployment</code> 的跨机房高可用部署是指均匀分布在多个机房中，并且分批升级时每次要从多个机房中选择一部分进行升级，以实现全面的灰度验证；而原地升级的特性也没法自动
+摘干净流量。对这些实际业务需求的梳理和展示其实是这个 session 给我最大的收获。</p>
+
+<p>还有几个比较有意思的事情：</p>
+
+<ul>
+<li><code>CafeDeployment</code> 用一个 annotation 来控制升级过程中的手动确认：升级完一个批次后，annotation 被置为 <code>false</code> ，用户修改为 <code>true</code> 后继续开始下一批次的升级。其实我本来觉得这个做法不符合声明式 API，status 和 spec 是对不上的，像 statefulset 这样用 paritition 更合理。但这种办法也有好处，就是用户界面最简化，用户只需要关心是否能继续升级即可，这里也是一个权衡；</li>
+<li><code>CafeDeployment</code> 没有用 CRD，而是用 AA （Aggregated ApiServer）实现的。原因是 CRD 不能定义 <code>/scale</code> 这样的 subresource，另外，听说 <code>CafeDeployment</code> 也正在打算把自定义的 APIServer 的存储换掉，不用 etcd；</li>
+</ul>
+
+<h2 id="alibaba-cloudnative">Alibaba CloudNative<a href="#alibaba-cloudnative" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><a href="https://static.sched.com/hosted%5Ffiles/kccncosschn19chi/7e/Moving%20E-business%20Giant%20to%20Cloud%20Native-0.2.pdf">Slides</a></p>
+
+<p>也就是&rdquo;电商巨头的原生云迁移经验&rdquo;这个 session，张磊老师的 session 是一定要去听的 —— 当然，还有几百个小伙伴也都是这么想的，因此在开始前 10 分钟 Room 609 就直接出现了爆场，外面的小伙伴都进不来
+的情况，火爆程度可见一斑。事实上内容也确实是干货满满。</p>
+
+<p>记得 KubeCon 听到的 talk 里，阿里似乎还在说 &ldquo;把 Sigma 的 Control Plane 换成 Kubernetes&rdquo;，而这次的架构图就已经直接是 Kubernetes 原生 ApiServer + 一个完全自研的 Scheduler + 自研 Controllers （Cruise）了，Pouch 也换成了 containerd。session 里还着重说了消灭富容器，全面拥抱了社区的最佳实践，阿里这样的体量展现出如此敏捷的技术升级，当时在会场听的时候确实是很震撼。</p>
+
+<p>另外要说的一点是，关于最佳实践的文档和博客我们大家都常常看，但真正要去讲给别人的听，要用最佳实现说服别的人的时候，却总是感觉讲不生动，词不达意，最后讲来讲去变成复读机 &ldquo;这是最佳实践，这是最佳实践&hellip;&rdquo;
+而张磊老师讲的时候总是能恰到好处地&rdquo;我举个例子&rdquo;一波讲明白，这个姿势要能学来可就不得了了&hellip;</p>
+
+<p>还有一个重头是 <a href="https://github.com/openkruise/kruise">OpenCruise</a>，提供三种 CRD：SidecarSet，(Advanced)StatefulSet，BroadcastJob，具体的作用大家看一下项目文档就能了解个大概。我想写的还是一些体会。</p>
+
+<p>首先是 OpenCruise 里的 StatefulSet 提供的原地升级功能。我原本以为原地升级不就是保持 IP 不变吗，这不就是迁就虚拟机时代的基础设施吗，一点也不云原生。当然，你让我说为什么不支持原地升级，我也讲
+不明白，可能只会说 Pod 的设计意图就是 Mortal 的，你们现在逆天而为要给 Pod 续命实在是搞得太丑了。事实证明我完全错了，这些认知根本是没有见过实际的业务场景在意淫（还好我还晓得参加 KubeCon）。
+讲师之一的酒祝讲了个例子，阿里自研的调度器支持 Batch Scheduling，对于一批十几万个 Pod，可能要尝试非常多种方案才能得出一个排布拓扑，这时候再去做删除式的滚动升级代价太大了；同时，类似双十一
+这样的大促之前还要搞全链路压测，压测完之后要是一个滚动拓扑变了，系统承压量又不一样了怎么办？</p>
+
+<p>这个例子说服力超强，而且也凸显出本地升级&rdquo;稳定为先&rdquo;的优势。</p>
+
+<p>然后是 SidecarSet，与 session 前半部分的内容结合来看，这个也是符合去富容器历史进程的产物。因为大量富容器中的非业务进程需要做成 sidecar，而把 Sidecar 和业务容器的管理剥离开始，则是一个
+四两拨千斤的创新，不说了不说了&hellip;我都感觉快成软广了(其实是写不动了 orz)</p>
+
+<p>总之，假如你没去听的话，看一下 slides 绝对值得。</p>
+
+<h2 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>上面的各种 session 再结合 KubeCon 前几天发布的 Kubernetes 1.15 对 CRD 的大量增强以及社区里俯拾皆是的 xxx-operator，无疑印证了 CRD 和自定义控制器已经是最 &ldquo;稀松平常&rdquo; 的 Kubernetes 扩展模式。这时候，CRD 本身也就不再有意思，需要把光彩让给 <code>SidecarSet</code>, <code>CafeDeployment</code> 这些匠心独运的业务实践了。另外，要插个硬广，我司在做的 <a href="https://github.com/pingcap/tidb-operator">tidb-operator</a> 面临的场景同样极富挑战，假如你想知道在云上编排一个复杂的分布式数据库是一种怎样的体验，欢迎通过邮箱 wuyelei@pingcap.com 联系我！</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>4684 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-07-27 04:19</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/56bcec91afe526f2643dbeee41f1ed39f6e31054" target="_blank" rel="noopener">56bcec9</a> @ 2019-07-27</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#crd-no-longer-2nd-class-thing">CRD no longer 2nd class thing</a></li>
+<li><a href="#to-crd-or-not-to-crd">To CRD or not to CRD</a></li>
+<li><a href="#cafedeployment">CafeDeployment</a></li>
+<li><a href="#alibaba-cloudnative">Alibaba CloudNative</a></li>
+<li><a href="#结语">结语</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/kubectl-debug-intro/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>简化 Pod 故障诊断: kubectl-debug 介绍</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/tidb-operator-design/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>文稿分享记录：TiDB Operator 设计与实现</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

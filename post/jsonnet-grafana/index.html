@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Jsonnet 简明教程与应用">
+<meta itemprop="description" content="Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&rdquo">
+
+
+<meta itemprop="datePublished" content="2019-04-07T13:48:47&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="2592">
+
+
+
+<meta itemprop="keywords" content="kubernetes," />
+<meta property="og:title" content="Jsonnet 简明教程与应用" />
+<meta property="og:description" content="Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&rdquo" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/jsonnet-grafana/" />
+<meta property="article:published_time" content="2019-04-07T13:48:47+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Jsonnet 简明教程与应用"/>
+<meta name="twitter:description" content="Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&rdquo"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Jsonnet 简明教程与应用</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 7, 2019</span></div>
+				<h1>Jsonnet 简明教程与应用</h1>
+			</header>
+			<div class="content">
+				
+
+<blockquote>
+<p>Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&rdquo;灵活&rdquo;和&rdquo;限制&rdquo;上有一个很好的平衡. 同时, k8s 和 grafana 社区也有很多 jsonnet 的库, 这两点给学习 jsonnet 提供了足够的理由.</p>
+</blockquote>
+
+<h1 id="jsonnet">Jsonnet<a href="#jsonnet" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p><a href="https://jsonnet.org/">Jsonnet</a> 是 Google 推出的一门 JSON 模板语言. 它的基本思想是在 JSON 的基础上扩展语法, 将 JSON 的部分字段用代码来表达, 并在运行期生成这些字段. Jsonnet 本身非常简单, 花五分钟跟着下面的代码在命令行走一遍就能掌握基本用法:</p>
+
+<p>PS: 我不会列出所有的语法和细节, 只会写必要的部分, 掌握了这些部分, 我们就可以看懂所有的 jsonnet 库并且动手修改它们 (详细的文档请见: <a href="https://jsonnet.org/learning/tutorial.html">Jsonnet Tutorial</a>
+PSS: <code>cat&gt;test.jsonnet&lt;&lt;EOF</code> 的作用是使用两个 EOF 之间的文本覆写 <code>test.jsonnet</code> 文件, 因此假如你使用 IDE 的话, 复制两个 EOF 之间的内容即可</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># 安装 Jsonnet(C 实现)</span>
+$ brew install jsonnet
+
+<span class="c1"># 也可以安装 Go 实现</span>
+$ go get github.com/google/go-jsonnet/cmd/jsonnet
+
+<span class="c1"># 基本用法: 解释运行一个 jsonnet 源码文件</span>
+$ <span class="nb">echo</span> <span class="s2">&#34;{key: 1+2}&#34;</span> &gt; test.jsonnet
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;key&#34;</span>: <span class="m">3</span>
+<span class="o">}</span>
+
+<span class="c1"># 对于简单的代码也可以使用 -e 直接运行</span>
+$ jsonnet -e <span class="s1">&#39;{key: 1+2}&#39;</span>
+<span class="o">{</span>
+   <span class="s2">&#34;key&#34;</span>: <span class="m">3</span>
+<span class="o">}</span>
+
+<span class="c1"># format 源码文件</span>
+$ jsonnet fmt test.jsonnet
+
+<span class="c1"># Jsonnet 语法比 JSON 更宽松(类似 JS):</span>
+<span class="c1"># 字段可以不加引号; 支持注释; 字典或列表的最后一项可以带逗号</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">/* 多行
+</span><span class="s">注释 */
+</span><span class="s">{key: 1+2, &#39;key with space&#39;: &#39;key with special char should be quoted&#39;}
+</span><span class="s">// 单行注释
+</span><span class="s">EOF</span>
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;key&#34;</span>: <span class="m">3</span>,
+   <span class="s2">&#34;key with space&#34;</span>: <span class="s2">&#34;key with special char should be quoted&#34;</span>
+<span class="o">}</span>
+
+<span class="c1"># 类比: Jsonnet 支持与主流语言类似的四则运算, 条件语句, 字符串拼接,</span> 
+<span class="c1"># 字符串格式化, 数组拼接, 数组切片以及 python 风格的列表生成式</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">{
+</span><span class="s">  array: [1, 2] + [3],
+</span><span class="s">  math: (4 + 5) / 3 * 2,
+</span><span class="s">  format: &#39;Hello, I am %s&#39; % &#39;alei&#39;,
+</span><span class="s">  concat: &#39;Hello, &#39; + &#39;I am alei&#39;,
+</span><span class="s">  slice: [1,2,3,4][1:3],
+</span><span class="s">  &#39;list comprehension&#39;: [x * x for x in [1,2,3,4]],
+</span><span class="s">  condition:
+</span><span class="s">    if 2 &gt; 1 then 
+</span><span class="s">    &#39;true&#39;
+</span><span class="s">    else 
+</span><span class="s">    &#39;false&#39;,
+</span><span class="s">}
+</span><span class="s">EOF</span>
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;array&#34;</span>: <span class="o">[</span>
+      <span class="m">1</span>,
+      <span class="m">2</span>,
+      <span class="m">3</span>
+   <span class="o">]</span>,
+   <span class="s2">&#34;concat&#34;</span>: <span class="s2">&#34;Hello, I am alei&#34;</span>,
+   <span class="s2">&#34;condition&#34;</span>: <span class="s2">&#34;true&#34;</span>,
+   <span class="s2">&#34;format&#34;</span>: <span class="s2">&#34;Hello, I am alei&#34;</span>,
+   <span class="s2">&#34;list comprehension&#34;</span>: <span class="o">[</span>
+      <span class="m">1</span>,
+      <span class="m">4</span>,
+      <span class="m">9</span>,
+      <span class="m">16</span>
+   <span class="o">]</span>,
+   <span class="s2">&#34;math&#34;</span>: <span class="m">6</span>,
+   <span class="s2">&#34;slice&#34;</span>: <span class="o">[</span>
+      <span class="m">2</span>,
+      <span class="m">3</span>
+   <span class="o">]</span>
+<span class="o">}</span>
+
+<span class="c1"># 使用变量:</span>
+<span class="c1">#   使用 :: 定义的字段是隐藏的(不会被输出到最后的 JSON 结果中),</span> 
+<span class="c1">#   这些字段可以作为内部变量使用(非常常用)</span>
+
+<span class="c1">#   使用 local 关键字也可以定义变量</span>
+<span class="c1">#   JSON 的值中可以引用字段或变量, 引用方式:</span>
+<span class="c1">#     变量名</span>
+<span class="c1">#     self 关键字: 指向当前对象</span>
+<span class="c1">#     $ 关键字: 指向根对象</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">{
+</span><span class="s">  local name = &#39;aylei&#39;,
+</span><span class="s">  language:: &#39;jsonnet&#39;,
+</span><span class="s">  message: {
+</span><span class="s">    target: $.language,
+</span><span class="s">    author: name,
+</span><span class="s">    by: self.author,
+</span><span class="s">  }
+</span><span class="s">}
+</span><span class="s">EOF</span>
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;message&#34;</span>: <span class="o">{</span>
+      <span class="s2">&#34;author&#34;</span>: <span class="s2">&#34;aylei&#34;</span>,
+      <span class="s2">&#34;by&#34;</span>: <span class="s2">&#34;aylei&#34;</span>,
+      <span class="s2">&#34;target&#34;</span>: <span class="s2">&#34;jsonnet&#34;</span>
+   <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1"># 使用函数:</span>
+<span class="c1"># 函数(或者说方法)在 Jsonnet 中是一等公民,</span> 
+<span class="c1"># 定义与引用方式与变量相同, 函数语法类似 python</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">{
+</span><span class="s">  local hello(name) = &#39;hello %s&#39; % name,
+</span><span class="s">  sum(x, y):: x + y,
+</span><span class="s">  newObj(name=&#39;alei&#39;, age=23, gender=&#39;male&#39;):: {
+</span><span class="s">    name: name,
+</span><span class="s">    age: age,
+</span><span class="s">    gender: gender,
+</span><span class="s">  },
+</span><span class="s">  call_sum: $.sum(1, 2),
+</span><span class="s">  call_hello: hello(&#39;world&#39;),
+</span><span class="s">  me: $.newObj(age=24),
+</span><span class="s">}
+</span><span class="s">EOF</span>
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;call_hello&#34;</span>: <span class="s2">&#34;hello world&#34;</span>,
+   <span class="s2">&#34;call_sum&#34;</span>: <span class="m">3</span>,
+   <span class="s2">&#34;me&#34;</span>: <span class="o">{</span>
+      <span class="s2">&#34;age&#34;</span>: <span class="m">24</span>,
+      <span class="s2">&#34;gender&#34;</span>: <span class="s2">&#34;male&#34;</span>,
+      <span class="s2">&#34;name&#34;</span>: <span class="s2">&#34;alei&#34;</span>
+   <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1"># Jsonnet 使用组合来实现面向对象的特性(类似 Go)</span>
+<span class="c1">#   Json Object 就是 Jsonnet 中的对象</span>
+<span class="c1">#   使用 + 运算符来组合两个对象, 假如有字段冲突,</span> 
+<span class="c1">#   使用右侧对象(子对象)中的字段</span>
+
+<span class="c1">#   子对象中使用 super 关键字可以引用父对象,</span> 
+<span class="c1">#   用这个办法可以访问父对象中被覆盖掉的字段</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">local base = {
+</span><span class="s">  f: 2,
+</span><span class="s">  g: self.f + 100,
+</span><span class="s">};
+</span><span class="s">base + {
+</span><span class="s">  f: 5,
+</span><span class="s">  old_f: super.f,
+</span><span class="s">  old_g: super.g,
+</span><span class="s">}
+</span><span class="s">EOF</span> 
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;f&#34;</span>: <span class="m">5</span>,
+   <span class="s2">&#34;g&#34;</span>: <span class="m">105</span>,
+   <span class="s2">&#34;old_f&#34;</span>: <span class="m">2</span>,
+   <span class="s2">&#34;old_g&#34;</span>: <span class="m">105</span>
+<span class="o">}</span>
+
+<span class="c1"># 有时候我们希望一个对象中的字段在进行组合时不要</span>
+<span class="c1"># 覆盖父对象中的字段, 而是与相同的字段继续进行组合</span>
+
+<span class="c1"># 这时可以用 +: 来声明这个字段 (+:: 与 +: 的含义相同,</span> 
+<span class="c1"># 但与 :: 一样的道理, +:: 定义的字段是隐藏的)</span>
+
+<span class="c1"># 对于 JSON Object, 我们更希望进行组合而非覆盖, 因此在定义 Object</span> 
+<span class="c1"># 字段时, 很多库都会选择使用 +: 和 +::, 但我们也要注意不能滥用</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">local child = {
+</span><span class="s">  override: {
+</span><span class="s">    x: 1,
+</span><span class="s">  },
+</span><span class="s">  composite+: {
+</span><span class="s">    x: 1,
+</span><span class="s">  },
+</span><span class="s">};
+</span><span class="s">{
+</span><span class="s">  override: { y: 5, z: 10 },
+</span><span class="s">  composite: { y: 5, z: 10 },
+</span><span class="s">} + child
+</span><span class="s">EOF</span>
+$ jsonnet test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;composite&#34;</span>: <span class="o">{</span>
+      <span class="s2">&#34;x&#34;</span>: <span class="m">1</span>,
+      <span class="s2">&#34;y&#34;</span>: <span class="m">5</span>,
+      <span class="s2">&#34;z&#34;</span>: <span class="m">10</span>
+   <span class="o">}</span>,
+   <span class="s2">&#34;override&#34;</span>: <span class="o">{</span>
+      <span class="s2">&#34;x&#34;</span>: <span class="m">1</span>
+   <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1"># 库与 import:</span>
+<span class="c1">#  jsonnet 共享库复用方式其实就是将库里的代码整合到当前文件中来,</span>
+<span class="c1">#  引用方式也很暴力, 使用 -J 参数指定 lib 文件夹, 再在代码里 import 即可</span>
+
+<span class="c1">#  jsonnet 约定库文件的后缀名为 .libsonnet</span>
+$ mkdir some-path
+$ cat&gt;some-path/mylib.libsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">{
+</span><span class="s">  newVPS(ip, 
+</span><span class="s">      region=&#39;cn-hangzhou&#39;, 
+</span><span class="s">      distribution=&#39;CentOS 7&#39;, 
+</span><span class="s">      cpu=4, 
+</span><span class="s">      memory=&#39;16GB&#39;):: {
+</span><span class="s">    ip: ip,
+</span><span class="s">    distribution: distribution,
+</span><span class="s">    cpu: cpu,
+</span><span class="s">    memory: memory,
+</span><span class="s">    vendor: &#39;Alei Cloud&#39;,
+</span><span class="s">    os: &#39;linux&#39;,
+</span><span class="s">    packages: [],
+</span><span class="s">    install(package):: self + {
+</span><span class="s">      packages+: [package],
+</span><span class="s">    },
+</span><span class="s">  }
+</span><span class="s">}
+</span><span class="s">EOF</span>
+$ cat&gt;test.jsonnet<span class="s">&lt;&lt;EOF
+</span><span class="s">local vpsTemplate = import &#39;some-path/mylib.libsonnet&#39;;
+</span><span class="s">vpsTemplate
+</span><span class="s">  .newVPS(ip=&#39;10.10.44.144&#39;, cpu=8, memory=&#39;32GB&#39;)
+</span><span class="s">  .install(&#39;docker&#39;)
+</span><span class="s">  .install(&#39;jsonnet&#39;)
+</span><span class="s">EOF</span>
+$ jsonnet -J . test.jsonnet
+<span class="o">{</span>
+   <span class="s2">&#34;cpu&#34;</span>: <span class="m">8</span>,
+   <span class="s2">&#34;distribution&#34;</span>: <span class="s2">&#34;CentOS 7&#34;</span>,
+   <span class="s2">&#34;ip&#34;</span>: <span class="s2">&#34;10.10.44.144&#34;</span>,
+   <span class="s2">&#34;memory&#34;</span>: <span class="s2">&#34;32GB&#34;</span>,
+   <span class="s2">&#34;os&#34;</span>: <span class="s2">&#34;linux&#34;</span>,
+   <span class="s2">&#34;packages&#34;</span>: <span class="o">[</span>
+      <span class="s2">&#34;docker&#34;</span>,
+      <span class="s2">&#34;jsonnet&#34;</span>
+   <span class="o">]</span>,
+   <span class="s2">&#34;vendor&#34;</span>: <span class="s2">&#34;Alei Cloud&#34;</span>
+<span class="o">}</span>
+
+<span class="c1"># 上面这种 Builder 模式在 jsonnet 中非常常见,</span> 
+<span class="c1"># 也就是先定义一个构造器, 构造出基础对象然后用各种方法进行修改.</span> 
+<span class="c1"># 当对象非常复杂时, 这种模式比直接覆盖父对象字段更易维护</span>
+
+<span class="c1"># 了解上面这些基本用法之后我们就能看懂几乎所有 jsonnet 的库并且能够自己动手修改了</span></code></pre></div>
+<h1 id="jsonnet-使用场景">Jsonnet 使用场景<a href="#jsonnet-使用场景" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>虽然 Jsonnet 本身是图灵完备的, 但它本身是专门为了生成 JSON 设计的模板语言, 因此使用场景主要集中在配置管理上. 社区的实践主要是用 jsonnet 做 Kubernetes, Prometheus, Grafana 的配置管理, 相关的库有:</p>
+
+<ul>
+<li><a href="https://github.com/bitnami/kubecfg">kubecfg</a>: 使用 jsonnet 生成 kubernetes API 对象 并 apply</li>
+<li><a href="https://github.com/ksonnet/ksonnet-lib">ksonnet-lib</a>: 一个 jsonnet 的库, 用于生成 kubernetes API 对象(在 hepstio 被 IBM 收购之后 IBM 放弃了 ksonnet 这个项目)</li>
+<li><a href="https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus">kube-prometheus</a>: 使用 jsonnet 生成 Prometheus-Operator, Prometheus, Grafana 以及一系列监控组件的配置</li>
+<li><a href="https://github.com/grafana/grafonnet-lib/tree/master/grafonnet">grafonnet-lib</a>: 一个 jsonnet 的库, 用于生成 json 格式的 Grafana 看板配置</li>
+</ul>
+
+<p>还有一些公司的应用例子:</p>
+
+<ul>
+<li><a href="https://github.com/grafana/jsonnet-libs">grafana 的 jsonnet-lib</a>: Grafana 内部使用的 jsonnet-libs, 包含各种配置的管理</li>
+<li><a href="https://github.com/databricks/jsonnet-style-guide">databrikcs 的 jsonnet-style-guide</a>: Databricks 的 jsonnet 风格指南, 里面还讲了 databricks 是怎么使用 jsonnet 的</li>
+</ul>
+
+<p>k8s 资源对象生成相关的场景对我吸引力不大, 因为 kustomize, helm 甚至 kubernetes operator 从某种程度上来说都是做这件事的, jsonnet 相比之下并没有特别的优势. 但在监控这一块, 由于 Prometheus 相关社区(Grafana, Prometheus-Operator, kube-prometheus) 都使用 jsonnet 做配置管理, 我们也不得不入乡随俗了.</p>
+
+<blockquote>
+<p>prometheus 也有 helm 的 chart, 但完善程度以及可定制性被基于 jsonnet 的 kube-prometheus 完爆</p>
+</blockquote>
+
+<p>我们就以 <a href="https://github.com/grafana/grafonnet-lib/tree/master/grafonnet">grafonnet-lib</a> 为例, 探究如何使用 jsonnet 库来便捷地生成复杂 JSON 并根据自己的需求改进 jsonnet 库.</p>
+
+<h1 id="grafonnet">Grafonnet<a href="#grafonnet" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>首先 clone grafonnet 到本地:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">$ git clone https://github.com/grafana/grafonnet-lib.git
+$ <span class="nb">cd</span> grafonnet-lib
+<span class="c1"># 简单看一眼这个库提供的 .libsonnet, 可以看到, 库的入口文件聚合了各个模块, 这也是一种 jsonnet 的常见模式</span>
+$ cat grafonnet/grafana.libsonnet
+<span class="o">{</span>
+  dashboard:: import <span class="s1">&#39;dashboard.libsonnet&#39;</span>,
+  template:: import <span class="s1">&#39;template.libsonnet&#39;</span>,
+  text:: import <span class="s1">&#39;text.libsonnet&#39;</span>,
+  timepicker:: import <span class="s1">&#39;timepicker.libsonnet&#39;</span>,
+  row:: import <span class="s1">&#39;row.libsonnet&#39;</span>,
+  link:: import <span class="s1">&#39;link.libsonnet&#39;</span>,
+  annotation:: import <span class="s1">&#39;annotation.libsonnet&#39;</span>,
+  graphPanel:: import <span class="s1">&#39;graph_panel.libsonnet&#39;</span>,
+  tablePanel:: import <span class="s1">&#39;table_panel.libsonnet&#39;</span>,
+  singlestat:: import <span class="s1">&#39;singlestat.libsonnet&#39;</span>,
+  influxdb:: import <span class="s1">&#39;influxdb.libsonnet&#39;</span>,
+  prometheus:: import <span class="s1">&#39;prometheus.libsonnet&#39;</span>,
+  sql:: import <span class="s1">&#39;sql.libsonnet&#39;</span>,
+  graphite:: import <span class="s1">&#39;graphite.libsonnet&#39;</span>,
+  alertCondition:: import <span class="s1">&#39;alert_condition.libsonnet&#39;</span>,
+  cloudwatch:: import <span class="s1">&#39;cloudwatch.libsonnet&#39;</span>,
+  elasticsearch:: import <span class="s1">&#39;elasticsearch.libsonnet&#39;</span>,
+<span class="o">}</span></code></pre></div>
+<p>通过查看各个模块的 jsonnet 代码, 我们就能探索出这个库的所有接口, 可以磕磕绊绊地使用它来生成 Grafana 看板的 JSON 配置了:</p>
+<div class="highlight"><pre class="chroma"><code class="language-jsonnet" data-lang="jsonnet">local grafana = import &#39;grafonnet/grafana.libsonnet&#39;;
+local dashboard = grafana.dashboard;
+local template = grafana.template;
+local singlestat = grafana.singlestat;
+local prometheus = grafana.prometheus;
+
+dashboard.new(
+  &#39;Test&#39;,
+  schemaVersion=16,
+)
+.addTemplate(
+  grafana.template.datasource(
+    &#39;PROMETHEUS_DS&#39;,
+    &#39;prometheus&#39;,
+    &#39;Prometheus&#39;,
+    hide=&#39;label&#39;,
+  )
+)
+.addPanel(
+  singlestat.new(
+    &#39;prometheus-up&#39;,
+    format=&#39;s&#39;,
+    datasource=&#39;Prometheus&#39;,
+    span=2,
+    valueName=&#39;current&#39;,
+  )
+  .addTarget(
+    prometheus.target(
+      &#39;up{job=&#34;prometheus&#34;}&#39;,
+    )
+  ), 
+  gridPos= { x: 0, y: 0, w: 24, h: 3, }
+)</code></pre></div>
+<p>将上面的内容保存为 <code>dashboard.jsonnet</code> 并执行 <code>jsonnet -J . dashboard.jsonnet</code>, 你就能看到生成的一大串 JSON.</p>
+
+<p>可以看到, grafonnet 采用的正是我们上面讲到的 Builder 模式.</p>
+
+<p>由于 grafonnet 是一个通用库, 因此我们的 jsonnet 还是比较复杂, 仅仅添加一个图表就写了这么多行, 很显然, 我们可以再封装一层, 去掉很多在自己内部没必要定制的东西, 提供一个更简单的接口. 这时候 jsonnet 的灵活性就展现得很明显了.</p>
+
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>其实看完 Jsonnet 的功能之后, 我们会发现 jsonnet 的功能用其它语言也能实现, 甚至用 javascript 来实现的话写的代码和 jsonnet 都是有点类似的, 那为什么还要选 Jsonnet 呢? 其实对我而言, 仅仅是因为相关的工作中 Jsonnet 有现成的库可以用, 而且有丰富的文档.</p>
+
+<p>但从另一个角度来想, Jsonnet 确实有它独特的优越性, 那就是<strong>限制非常大</strong>. 在 Jsonnet 中, 我们无法去访问一个外部的数据库或者 Web 服务来生成配置, 也没法搞各种语言中有趣的奇技淫巧. 这种限制带来的好处是, Jsonnet 每次生成都只依赖于代码文件以及被依赖的代码文件, 那假如用一个放 jsonnet 的 git 仓库来做配置管理, 这个库就是百分之百的 Single Source of Truth, 没有惊喜, 没有意外. 这是把领域性的 Best Practice 从规范和 Code Review 下沉到工具乃至语言本身当中的一个绝佳例子.</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2592 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-04-07 05:48</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#jsonnet">Jsonnet</a></li>
+<li><a href="#jsonnet-使用场景">Jsonnet 使用场景</a></li>
+<li><a href="#grafonnet">Grafonnet</a></li>
+<li><a href="#结语">结语</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/aliyun-exporter-bp/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>编写 Prometheus Exporter: 以阿里云 Exporter 为例</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/kubectl-guru/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Kubectl 效率提升指北</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

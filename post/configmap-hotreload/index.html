@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Kubernetes Pod 中的 ConfigMap 配置更新">
+<meta itemprop="description" content="业务场景里经常会碰到配置更新的问题，在 &ldquo;GitOps&ldquo;模式下，Kubernetes 的 ConfigMap 或 Secret 是非常好的配置管理机制。但">
+
+
+<meta itemprop="datePublished" content="2019-02-24T20:04:16&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="2816">
+
+
+
+<meta itemprop="keywords" content="kubernetes," />
+<meta property="og:title" content="Kubernetes Pod 中的 ConfigMap 配置更新" />
+<meta property="og:description" content="业务场景里经常会碰到配置更新的问题，在 &ldquo;GitOps&ldquo;模式下，Kubernetes 的 ConfigMap 或 Secret 是非常好的配置管理机制。但" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/configmap-hotreload/" />
+<meta property="article:published_time" content="2019-02-24T20:04:16+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes Pod 中的 ConfigMap 配置更新"/>
+<meta name="twitter:description" content="业务场景里经常会碰到配置更新的问题，在 &ldquo;GitOps&ldquo;模式下，Kubernetes 的 ConfigMap 或 Secret 是非常好的配置管理机制。但"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Kubernetes Pod 中的 ConfigMap 配置更新</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 24, 2019</span></div>
+				<h1>Kubernetes Pod 中的 ConfigMap 配置更新</h1>
+			</header>
+			<div class="content">
+				
+
+<p>业务场景里经常会碰到配置更新的问题，在 &ldquo;<a href="https://www.weave.works/blog/gitops-operations-by-pull-request">GitOps</a>&ldquo;模式下，Kubernetes 的 <code>ConfigMap</code> 或 <code>Secret</code> 是非常好的配置管理机制。但是，Kubernetes 到目前为止(1.13版本)还没有提供完善的 <code>ConfigMap</code> 管理机制，当我们更新 <code>ConfigMap</code> 或 <code>Secret</code> 时，引用了这些对象的 <code>Deployment</code> 或 <code>StatefulSet</code> 并不会发生滚动更新。因此，我们需要自己想办法解决配置更新问题，让整个流程完全自动化起来。</p>
+
+<blockquote>
+<p>GitOps 的大体来说就是使用 git repo 存储资源描述的代码(比如各类 k8s 资源的 yaml 文件)，再通过 CI 或控制器等手段保证集群状态与仓库代码的同步，最后通过 Pull Request 流程来审核,执行或回滚运维操作</p>
+
+<p>这篇文章中的所有知识对 <code>Secret</code> 对象也是通用的，为了简明，下文只称 <code>ConfigMap</code></p>
+</blockquote>
+
+<h1 id="概述">概述<a href="#概述" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>首先，我们先给定一个背景，假设我们定义了如下的 <code>ConfigMap</code>：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>ConfigMap<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>test-config<span class="w">
+</span><span class="w"></span>data<span class="p">:</span><span class="w">
+</span><span class="w">  </span>config.yml<span class="p">:</span><span class="w"> </span>|<span class="sd">-
+</span><span class="sd">    start-message: &#39;Hello, World!&#39;</span><span class="w">
+</span><span class="w">    </span>log-level<span class="p">:</span><span class="w"> </span>INFO<span class="w">
+</span><span class="w">  </span>bootstrap.yml<span class="p">:</span><span class="w">
+</span><span class="w">    </span>listen-address<span class="p">:</span><span class="w"> </span><span class="s1">&#39;127.0.0.1:8080&#39;</span></code></pre></div>
+<p>这个 <code>ConfigMap</code> 的 <code>data</code> 字段中声明了两个配置文件，<code>config.yml</code> 和 <code>bootstrap.yml</code>，各自有一些内容。当我们要引用里面的配置信息时，Kubernetes 提供了两种方式：</p>
+
+<ul>
+<li>使用 <code>configMapKeyRef</code> 引用 <code>ConfigMap</code> 中某个文件的内容作为 Pod 中容器的环境变量；</li>
+<li>将所有 <code>ConfigMap</code> 中的文件写到一个临时目录中，将临时目录作为 volume 挂载到容器里，也就是 configmap 类型的 volume;</li>
+</ul>
+
+<p>好了，假设我们有一个 <code>Deployment</code>，它的 Pod 模板中以引用了这个 <code>ConfigMap</code>。现在的问题是，<strong>我们希望当 <code>ConfigMap</code> 更新时，这个 <code>Deployment</code> 的业务逻辑也能随之更新，有哪些方案？</strong></p>
+
+<ul>
+<li>最好是在当 <code>ConfigMap</code> 发生变更时，直接进行热更新，从而做到不影响 Pod 的正常运行</li>
+<li>假如无法热更新或热更新完成不了需求，就需要触发对应的 <code>Deployment</code> 做一次滚动更新</li>
+</ul>
+
+<p>接下来，我们就探究一下不同场景下的几种应对方案</p>
+
+<h1 id="场景一-针对可以做热更新的容器-进行配置热更新">场景一：针对可以做热更新的容器，进行配置热更新<a href="#场景一-针对可以做热更新的容器-进行配置热更新" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>当 <code>ConfigMap</code> 作为 volume 进行挂载时，它的内容是会更新的。为了更好地理解何时可以做热更新，我们要先简单分析 <code>ConfigMap</code> volume 的更新机制:</p>
+
+<p>更新操作由 kubelet 的 Pod 同步循环触发。每次进行 Pod 同步时（默认每 10 秒一次），Kubelet 都会将 Pod 的所有 <code>ConfigMap</code> volume 标记为&rdquo;需要重新挂载(RequireRemount)&ldquo;，而 kubelet 中的 volume 控制循环会发现这些需要重新挂载的 volume，去执行一次挂载操作。</p>
+
+<p>在 <code>ConfigMap</code> 的重新挂载过程中，kubelet 会先比较远端的 <code>ConfigMap</code> 与 volume 中的 <code>ConfigMap</code> 是否一致，再做更新。要注意，&rdquo;拿远端的 <code>ConfigMap</code>&rdquo; 这个操作可能是有缓存的，因此拿到的并不一定是最新版本。</p>
+
+<p>由此，我们可以知道，<code>ConfigMap</code> 作为 volume 确实是会自动更新的，但是它的更新存在延时，最多的可能延迟时间是:</p>
+
+<p><strong>Pod 同步间隔(默认10秒) + ConfigMap 本地缓存的 TTL</strong></p>
+
+<blockquote>
+<p>kubelet 上 ConfigMap 的获取是否带缓存由配置中的 <code>ConfigMapAndSecretChangeDetectionStrategy</code> 决定</p>
+
+<p>注意，假如使用了 <code>subPath</code> 将 ConfigMap 中的某个文件单独挂载到其它目录下，那这个文件是无法热更新的（这是 ConfigMap 的挂载逻辑决定的）</p>
+</blockquote>
+
+<p>有了这个底，我们就明确了：</p>
+
+<ul>
+<li>假如应用对配置热更新有实时性要求，那么就需要在业务逻辑里自己到 ApiServer 上去 watch 对应的 <code>ConfigMap</code> 来做更新。或者，干脆不要用 <code>ConfigMap</code>，换成 <code>etcd</code> 这样的一致性 kv 存储来管理配置；</li>
+<li>假如没有实时性要求，那我们其实可以依赖 <code>ConfigMap</code> 本身的更新逻辑来完成配置热更新；</li>
+</ul>
+
+<p>当然，配置文件更新完不代表业务逻辑就更新了，我们还需要通知应用重新读取配置进行业务逻辑上的更新。比如对于 Nginx，就需要发送一个 SIGHUP 信号量。这里有几种落地的办法。</p>
+
+<h2 id="热更新一-应用本身监听本地配置文件">热更新一：应用本身监听本地配置文件<a href="#热更新一-应用本身监听本地配置文件" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>假如是我们自己写的应用，我们完成可以在应用代码里去监听本地文件的变化，在文件变化时触发一次配置热更新。甚至有一些配置相关的第三方库本身就包装了这样的逻辑，比如说 <a href="https://github.com/spf13/viper">viper</a>。</p>
+
+<h2 id="热更新二-使用-sidecar-来监听本地配置文件变更">热更新二：使用 sidecar 来监听本地配置文件变更<a href="#热更新二-使用-sidecar-来监听本地配置文件变更" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Prometheus 的 Helm Chart 中使用的就是这种方式。这里有一个很实用的镜像叫做 <a href="https://github.com/jimmidyson/configmap-reload">configmap-reload</a>，它会去 watch 本地文件的变更，并在发生变更时通过 HTTP 调用通知应用进行热更新。</p>
+
+<p>但这种方式存在一个问题：Sidecar 发送信号（Signal）的限制比较多，而很多开源组件比如 Fluentd，Nginx 都是依赖 SIGHUP 信号来进行热更新的。主要的限制在于，kubernetes 1.10 之前，并不支持 pod 中的容器共享同一个 pid namespace，因此 sidecar 也就无法向业务容器发送信号了。而在 1.10 之后，虽然支持了 pid 共享，但在共享之后 pid namespace 中的 1 号进程会变成基础的 <code>/pause</code> 进程，我们也就无法轻松定位到目标进程的 pid 了。</p>
+
+<p>当然了，只要是 k8s 版本在 1.10 及以上并且开启了 <code>ShareProcessNamespace</code> 特性，我们多写点代码，通过进程名去找 pid，总是能完成需求的。但是 1.10 之前就是完全没可能用 sidecar 来做这样的事情了。</p>
+
+<h2 id="热更新三-胖容器">热更新三：胖容器<a href="#热更新三-胖容器" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>既然 sidecar 限制重重，那我们只能回归有点&rdquo;反模式&rdquo;的胖容器了。还是和 sidecar 一样的思路，但这次我们通过把主进程和sidecar 进程打在同一个镜像里，这样就直接绕过了 pid namespace 隔离的问题。当然，假如允许的话，还是用上面的一号或二号方案更好，毕竟容器本身的优势就是轻量可预测，而复杂则是脆弱之源。</p>
+
+<h1 id="场景二-无法热更新时-滚动更新-pod">场景二：无法热更新时，滚动更新 Pod<a href="#场景二-无法热更新时-滚动更新-pod" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>无法热更新的场景有很多：</p>
+
+<ul>
+<li>应用本身没有实现热更新逻辑，而一般来说自己写的大部分应用都不会特意去设计这个逻辑；</li>
+<li>使用 <code>subPath</code> 进行 <code>ConfigMap</code> 的挂载，导致 <code>ConfigMap</code> 无法自动更新；</li>
+<li>在环境变量或 <code>init-container</code> 中依赖了 <code>ConfigMap</code> 的内容；</li>
+</ul>
+
+<p>最后一点额外解释一下，当使用 <code>configMapKeyRef</code> 引用 <code>ConfigMap</code> 中的信息作为环境变量时，这个操作只会在 Pod 创建时执行一次，因此不会自动更新。而 <code>init-container</code> 也只会运行一次，因此假如 <code>init-contianer</code> 的逻辑依赖了 <code>ConfigMap</code> 的话，这个逻辑肯定也不可能按新的再来一遍了。</p>
+
+<p>当碰到无法热更新的时候，我们就必须去滚动更新 Pod 了。相信你一定想到了，那我们写一个 controller 去 watch <code>ConfigMap</code> 的变更，watch 到之后就去给 <code>Deployment</code> 或其它资源做一次滚动更新不就可以了吗？没错，但就我个人而言，我更喜欢依赖简单的东西，因此我们还是从简单的方案讲起。</p>
+
+<h2 id="pod-滚动更新一-修改-ci-流程">Pod 滚动更新一：修改 CI 流程<a href="#pod-滚动更新一-修改-ci-流程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>这种办法异常简单，只需要我们写一个简单的 CI 脚本：给 <code>ConfigMap</code> 算一个 Hash 值，然后作为一个环境变量或 Annotation 加入到 Deployment 的 Pod 模板当中。</p>
+
+<p>举个例子，我们写这样的一个 Deployment yaml 然后在 CI 脚本中，计算 Hash 值替换进去：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">...<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>template<span class="p">:</span><span class="w">
+</span><span class="w">    </span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">      </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">        </span>com.aylei.configmap/hash<span class="p">:</span><span class="w"> </span>${CONFIGMAP_HASH}<span class="w">
+</span><span class="w"></span>...</code></pre></div>
+<p>这时，假如 <code>ConfigMap</code> 变化了，那 Deployment 中的 Pod 模板自然也会发生变化，k8s 自己就会帮助我们做滚动更新了。另外，如何 <code>ConfigMap</code> 不大，直接把 <code>ConfigMap</code> 转化为 JSON 放到 Pod 模板中都可以，这样做还有一个额外的好处，那就是在排查故障时，我们一眼就能看到这个 Pod 现在关联的 ConfigMap 内容是什么。</p>
+
+<h2 id="pod-滚动更新二-controller">Pod 滚动更新二：Controller<a href="#pod-滚动更新二-controller" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>还有一个办法就是写一个 Controller 来监听 <code>ConfigMap</code> 变更并触发滚动更新。在自己动手写之前，推荐先看看一下社区的这些 Controller 能否能满足需求：</p>
+
+<ul>
+<li><a href="https://github.com/stakater/Reloader">Reloader</a></li>
+<li><a href="https://github.com/fabric8io/configmapcontroller">ConfigmapController</a></li>
+<li><a href="https://github.com/mfojtik/k8s-trigger-controller">k8s-trigger-controller</a></li>
+</ul>
+
+<h1 id="结尾">结尾<a href="#结尾" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>上面就是我针对 <code>ConfigMap</code> 和 <code>Secret</code> 热更新总结的一些方案。最后我们选择的是使用 sidecar 进行热更新，因为这种方式更新配置带来的开销最小，我们也为此主动避免掉了&rdquo;热更新环境变量这种场景&rdquo;。</p>
+
+<p>当然了，配置热更新也完全可以不依赖 <code>ConfigMap</code>，Etcd + Confd, 阿里的 Nacos, 携程的 Apollo 包括不那么好用的 Spring-Cloud-Config 都是可选的办法。但它们各自也都有需要考虑的东西，比如 Etcd + Confd 就要考虑 Etcd 里的配置项变更怎么管理；Nacos, Apollo 这种则需要自己在 client 端进行代码集成。相比之下，对于刚起步的架构，用 k8s 本身的 <code>ConfigMap</code> 和 <code>Secret</code> 可以算是一种最快最通用的选择了。</p>
+
+<h2 id="reference">Reference<a href="#reference" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<ul>
+<li><a href="https://github.com/kubernetes/kubernetes/issues/22368">Facilitate ConfigMap rollouts / management</a></li>
+<li><a href="https://github.com/kubernetes/kubernetes/issues/24957">Feature request: A way to signal pods</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/">Share Process Namespace between Containers in a Pod</a></li>
+<li><a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/">Configure a Pod to Use a ConfigMap</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2816 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-02-24 12:04</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#概述">概述</a></li>
+<li><a href="#场景一-针对可以做热更新的容器-进行配置热更新">场景一：针对可以做热更新的容器，进行配置热更新</a>
+<ul>
+<li><a href="#热更新一-应用本身监听本地配置文件">热更新一：应用本身监听本地配置文件</a></li>
+<li><a href="#热更新二-使用-sidecar-来监听本地配置文件变更">热更新二：使用 sidecar 来监听本地配置文件变更</a></li>
+<li><a href="#热更新三-胖容器">热更新三：胖容器</a></li>
+</ul></li>
+<li><a href="#场景二-无法热更新时-滚动更新-pod">场景二：无法热更新时，滚动更新 Pod</a>
+<ul>
+<li><a href="#pod-滚动更新一-修改-ci-流程">Pod 滚动更新一：修改 CI 流程</a></li>
+<li><a href="#pod-滚动更新二-controller">Pod 滚动更新二：Controller</a></li>
+</ul></li>
+<li><a href="#结尾">结尾</a>
+<ul>
+<li><a href="#reference">Reference</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/cncf-runtime-landscape/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>白话 Kubernetes Runtime</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/prometheus-bp/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Prometheus 不完全避坑指南</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

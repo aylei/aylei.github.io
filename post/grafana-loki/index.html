@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="云原生下的日志新玩法: Grafana loki 源码解析">
+<meta itemprop="description" content="注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时 Grafana loki 简介 在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &ldquo;loki&rdquo; 的新项目, 用于解决云原生架构下的日志收">
+
+
+<meta itemprop="datePublished" content="2018-12-14T22:52:03&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="4453">
+
+
+
+<meta itemprop="keywords" content="monitoring," />
+<meta property="og:title" content="云原生下的日志新玩法: Grafana loki 源码解析" />
+<meta property="og:description" content="注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时 Grafana loki 简介 在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &ldquo;loki&rdquo; 的新项目, 用于解决云原生架构下的日志收" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/grafana-loki/" />
+<meta property="article:published_time" content="2018-12-14T22:52:03+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="云原生下的日志新玩法: Grafana loki 源码解析"/>
+<meta name="twitter:description" content="注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时 Grafana loki 简介 在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &ldquo;loki&rdquo; 的新项目, 用于解决云原生架构下的日志收"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>云原生下的日志新玩法: Grafana loki 源码解析</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Dec 14, 2018</span></div>
+				<h1>云原生下的日志新玩法: Grafana loki 源码解析</h1>
+			</header>
+			<div class="content">
+				
+
+<blockquote>
+<p>注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时</p>
+</blockquote>
+
+<h1 id="grafana-loki-简介">Grafana loki 简介<a href="#grafana-loki-简介" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &ldquo;loki&rdquo; 的新项目, 用于解决云原生架构下的日志收集与存储问题. loki 受 Prometheus 影响很深, 它的 <a href="https://grafana.com/loki">landing page</a> 上的标题是 <code>Loki. Prometheus-inspired logging for cloud natives.</code>, <a href="https://github.com/grafana/loki">github 主页</a> 上的简介则是 <code>Like Prometheus, but for logs.</code>.</p>
+
+<p>目前 Grafana 已经发布了很详尽的 loki 相关资料, 包括:</p>
+
+<ul>
+<li><a href="https://speakerdeck.com/davkal/on-the-path-to-full-observability-with-oss-and-launch-of-loki">KubeCon 的 Slides</a></li>
+<li><a href="https://docs.google.com/document/d/11tjK_lvp1-SVsFZjgOTr1vV3-q6vBAsZYIQ5ZeYBkyM/view">design doc</a></li>
+<li><a href="https://grafana.com/blog/2018/12/12/loki-prometheus-inspired-open-source-logging-for-cloud-natives/">一篇介绍性的 Blog</a></li>
+<li><a href="https://github.com/grafana/loki#getting-started">Github 主页上的 Getting Started</a></li>
+</ul>
+
+<p>这些资料已经把 loki 的设计意图,架构,用法都讲得很清楚了, 假如你时间有限, 那么读一下 blog 就基本了解 loki 的全貌了. 下面就不再重复这些低信息量的内容, 从代码层面来看看 loki 有什么独到之处.</p>
+
+<h1 id="cortex">Cortex<a href="#cortex" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>分析 loki 代码之前, 不得不先提一下 <a href="https://github.com/cortexproject/cortex">cortex</a> 项目. <code>cortex</code> 是一个 Prometheus 的 Remote Backend, 核心价值是为 Prometheus 添加了水平扩展和(廉价的)指标长期存储能力. cortex 的完整设计可以看看它的<a href="https://docs.google.com/document/d/1C7yhMnb1x2sfeoe45f4mnnKConvroWhJ8KQZwIHJOuw/edit#heading=h.nimsq29kl184">设计白皮书</a>, 这里摘几个要点:</p>
+
+<ul>
+<li>扩展: 读写分离, 写入端分两层, 第一层 <code>distributor</code> 做一致性哈希, 将负载分发到第二层 <code>ingester</code> 上, <code>ingester</code> 在内存中缓存 Metrics 数据, 异步写入 Storage Backend</li>
+<li>易于维护: 所有节点无状态, 随时可以迁移扩展</li>
+<li>成本: 以 <code>chunk</code> 作为基本存储对象, 可以用廉价的对象存储(比如 S3)来作为 Storage Backend</li>
+</ul>
+
+<p>loki 和 <code>cortex</code> 的作者都是 <a href="https://github.com/tomwilkie">tomwilkie</a>, loki 也完全沿用了 <code>cortex</code> 的<code>distributor</code>, <code>ingester</code>, <code>querier</code>, <code>chunk</code> 这一套.</p>
+
+<h1 id="loki-overview">Loki Overview<a href="#loki-overview" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>在 <code>cortex</code> 体系中, Prometheus 只是一个 Metrics 采集器: 收集指标, 然后扔给 <code>cortex</code>. 我们只要把 Prometheus 这个组件替换成采集日志的 <code>Promtail</code>, 就(差不多)得到了 loki:</p>
+
+<p><img src="/img/loki/loki-arch.png" alt="loki" /></p>
+
+<p>这个架构图与 <a href="https://github.com/cortexproject/cortex/blob/master/docs/architecture.md">cortex 的架构图</a> 相差无几. 唯一不同的是 Prometheus 可以部署在一个远端集群中, 而 <code>Promtail</code> 必须部署到所有需要日志收集的 Node 上去.</p>
+
+<p>目前 loki 的运行模式还是 <code>All in One</code> 的, 即<code>distributor</code>, <code>querier</code>, <code>ingester</code>这些组件全都跑在 loki 主进程里. 不过这些组件之间的交互全都通过 gRPC 完成, 因此只要稍加改造就能作为一个分布式系统来跑.</p>
+
+<h1 id="promtail-日志采集">Promtail 日志采集<a href="#promtail-日志采集" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p><code>promtail</code> 可以理解为采集日志的 &ldquo;Prometheus&rdquo;. 它最巧妙的设计是完全复用了 Prometheus 的服务发现机制与 label 机制.</p>
+
+<p>以 Kubernetes 服务发现为例, Prometheus 可以通过 <code>Pod</code> 的 <code>Annotations</code> 与 <code>Labels</code> 等信息来确定 <code>Pod</code> 是否需要抓取指标, 假如要的话 <code>Pod</code> 的指标暴露在哪个端口上, 以及这个 <code>Pod</code> 本身有哪些 label, 即 target label.</p>
+
+<p>确定了这些信息之后, Prometheus 就可以去拉应用的指标了. 同时, 这些指标都会被打上 target label, 用于标注指标的来源. 等到在查询的时候, 我们就可以通过 target label, 比方说 <code>pod_name=foo-123512</code> 或 <code>service=user-service</code> 来获取特定的一个或一组 <code>Pod</code> 上的指标信息.</p>
+
+<p><code>promtail</code> 是一样的道理. 它也是通过 <code>Pod</code> 的一些元信息来确定该 <code>Pod</code> 的日志文件位置, 同时为日志打上特定的 target label. 但要注意, 这个 label 不是标注在每一行日志事件上的, 而是被标注在&rdquo;整个日志&rdquo;上的. 这里&rdquo;整个日志&rdquo;在 loki 中抽象为 <code>stream</code>(日志流). 这就是 loki 文档中所说的&rdquo;不索引日志, 只索引日志流&rdquo;. 最终在查询端, 我们通过这些 label 就可以快速查询一个或一组特定的 <code>stream</code>.</p>
+
+<p>服务发现部分的代码非常直白, 可以去 <code>pkg/promtail/targetmanager.go</code> 中自己看一下, 提两个实现细节:</p>
+
+<ul>
+<li><code>promtail</code> 要求所有 target 都跟自己属于同一个 node, 处于其它 node 上的 target 会被忽略;</li>
+<li><code>promtail</code> 使用 target 的 <code>__path__</code> label 来确定日志路径;</li>
+</ul>
+
+<p>通过服务发现确定要收集的应用以及应用的日志路径后, <code>promtail</code> 就开始了真正的日志收集过程. 这里分三步:</p>
+
+<ol>
+<li>用 <code>fsnotify</code> 监听对应目录下的文件创建与删除(处理 log rolling)</li>
+<li>对每个活跃的日志文件起一个 goroutine 进行类似 <code>tail -f</code> 的读取, 读取到的内容发送给 <code>channel</code></li>
+<li>一个单独的 goroutine 会解析 <code>channel</code> 中的日志行, 分批发送给 loki 的 backend</li>
+</ol>
+
+<h2 id="日志采集分析">日志采集分析<a href="#日志采集分析" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>首先是 <code>fsnotify</code>(源码里的一些错误处理会简略掉)</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="p">{</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nx">event</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">t</span><span class="p">.</span><span class="nx">watcher</span><span class="p">.</span><span class="nx">Events</span><span class="p">:</span>
+        <span class="k">switch</span> <span class="nx">event</span><span class="p">.</span><span class="nx">Op</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="nx">fsnotify</span><span class="p">.</span><span class="nx">Create</span><span class="p">:</span>
+            <span class="c1">// protect against double Creates.
+</span><span class="c1"></span>            <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">tails</span><span class="p">[</span><span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">];</span> <span class="nx">ok</span> <span class="p">{</span>
+                <span class="nx">level</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">logger</span><span class="p">).</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;msg&#34;</span><span class="p">,</span> <span class="s">&#34;got &#39;create&#39; for existing file&#34;</span><span class="p">,</span> <span class="s">&#34;filename&#34;</span><span class="p">,</span> <span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="p">}</span>
+
+            <span class="c1">// newTailer 中会启动一个 goroutine 来读目标文件
+</span><span class="c1"></span>            <span class="nx">tailer</span> <span class="o">:=</span> <span class="nf">newTailer</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">logger</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">handler</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">positions</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">path</span><span class="p">,</span> <span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+            <span class="nx">t</span><span class="p">.</span><span class="nx">tails</span><span class="p">[</span><span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">]</span> <span class="p">=</span> <span class="nx">tailer</span>
+            
+        <span class="k">case</span> <span class="nx">fsnotify</span><span class="p">.</span><span class="nx">Remove</span><span class="p">:</span>
+            <span class="nx">tailer</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">tails</span><span class="p">[</span><span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nx">ok</span> <span class="p">{</span>
+                <span class="c1">// 关闭 tailer
+</span><span class="c1"></span>                <span class="nx">helpers</span><span class="p">.</span><span class="nf">LogError</span><span class="p">(</span><span class="s">&#34;stopping tailer&#34;</span><span class="p">,</span> <span class="nx">tailer</span><span class="p">.</span><span class="nx">stop</span><span class="p">)</span>
+                <span class="nb">delete</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">tails</span><span class="p">,</span> <span class="nx">event</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="k">case</span> <span class="nx">err</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">t</span><span class="p">.</span><span class="nx">watcher</span><span class="p">.</span><span class="nx">Errors</span><span class="p">:</span>
+        <span class="nx">level</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">logger</span><span class="p">).</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;msg&#34;</span><span class="p">,</span> <span class="s">&#34;error from fswatch&#34;</span><span class="p">,</span> <span class="s">&#34;error&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">t</span><span class="p">.</span><span class="nx">quit</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+<p>接下来是 <code>newTailer()</code> 这个方法中启动的日志文件读取逻辑:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="nf">newTailer</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">tail</span> <span class="o">:=</span> <span class="nx">tail</span><span class="p">.</span><span class="nf">TailFile</span><span class="p">(</span><span class="nx">path</span><span class="p">,</span> <span class="nx">tail</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span>
+        <span class="nx">Follow</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nx">Location</span><span class="p">:</span> <span class="o">&amp;</span><span class="nx">tail</span><span class="p">.</span><span class="nx">SeekInfo</span><span class="p">{</span>
+            <span class="nx">Offset</span><span class="p">:</span> <span class="nx">positions</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">path</span><span class="p">),</span>
+            <span class="nx">Whence</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">})</span>
+   
+    <span class="nx">tailer</span> <span class="o">:=</span> <span class="o">...</span>
+    <span class="k">go</span> <span class="nx">tailer</span><span class="p">.</span><span class="nf">run</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">tailer</span><span class="p">)</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="k">select</span> <span class="p">{</span>
+        <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">positionWait</span><span class="p">.</span><span class="nx">C</span><span class="p">:</span>
+            <span class="c1">// 定时同步当前读取位置
+</span><span class="c1"></span>            <span class="nx">pos</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">tail</span><span class="p">.</span><span class="nf">Tell</span><span class="p">()</span>
+            <span class="nx">t</span><span class="p">.</span><span class="nx">positions</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">path</span><span class="p">,</span> <span class="nx">pos</span><span class="p">)</span>
+    
+        <span class="k">case</span> <span class="nx">line</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">t</span><span class="p">.</span><span class="nx">tail</span><span class="p">.</span><span class="nx">Lines</span><span class="p">:</span>
+            <span class="c1">// handler.Handle() 中是一些日志行的预处理逻辑, 最后将日志行转化为 `Entry` 对象扔进 channel
+</span><span class="c1"></span>            <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">handler</span><span class="p">.</span><span class="nf">Handle</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">LabelSet</span><span class="p">{},</span> <span class="nx">line</span><span class="p">.</span><span class="nx">Time</span><span class="p">,</span> <span class="nx">line</span><span class="p">.</span><span class="nx">Text</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+                <span class="nx">level</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">t</span><span class="p">.</span><span class="nx">logger</span><span class="p">).</span><span class="nf">Log</span><span class="p">(</span><span class="s">&#34;msg&#34;</span><span class="p">,</span> <span class="s">&#34;error handling line&#34;</span><span class="p">,</span> <span class="s">&#34;error&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+<p>这里直接调用了 <code>hpcloud/tail</code> 这个包来完成文件的 tail 操作. <code>hpcloud/tail</code> 的内部实现中, 在读到 EOF 之后, 同样调用了 <code>fsnotify</code> 来获取新内容写入的通知. <code>fsnotify</code> 这个包内部则是依赖了 <code>inotify_init</code> 和 <code>inotify_add_watch</code> 这两个系统调用, 可以参考<a href="http://man7.org/linux/man-pages/man7/inotify.7.html">inotify</a>.</p>
+
+<p>最后是日志发送, 这里有一个单独的 goroutine 会读取所有 tailer 通过 channel 传过来的日志(<code>Entry</code>对象), 然后按批发送给 loki:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="k">for</span> <span class="p">{</span>
+    <span class="c1">// 每次发送之后要重置计时器
+</span><span class="c1"></span>    <span class="nx">maxWait</span><span class="p">.</span><span class="nf">Reset</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">BatchWait</span><span class="p">)</span>
+    <span class="k">select</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">c</span><span class="p">.</span><span class="nx">quit</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">case</span> <span class="nx">e</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">c</span><span class="p">.</span><span class="nx">entries</span><span class="p">:</span>
+        <span class="c1">// Batch 足够大之后, 执行发送逻辑
+</span><span class="c1"></span>        <span class="k">if</span> <span class="nx">batchSize</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">Line</span><span class="p">)</span> <span class="p">&gt;</span> <span class="nx">c</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">BatchSize</span> <span class="p">{</span>
+            <span class="nx">c</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="nx">batch</span><span class="p">)</span>
+            <span class="c1">// 重置 Batch
+</span><span class="c1"></span>            <span class="nx">batchSize</span> <span class="p">=</span> <span class="mi">0</span>
+            <span class="nx">batch</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="nx">model</span><span class="p">.</span><span class="nx">Fingerprint</span><span class="p">]</span><span class="o">*</span><span class="nx">logproto</span><span class="p">.</span><span class="nx">Stream</span><span class="p">{}</span>
+        <span class="p">}</span>
+
+        <span class="c1">// 收到 Entry, 先写进 Batch 当中
+</span><span class="c1"></span>        <span class="nx">batchSize</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">e</span><span class="p">.</span><span class="nx">Line</span><span class="p">)</span>
+        
+        <span class="c1">// 每个 entry 要根据 label 放进对应的日志流(Stream)中
+</span><span class="c1"></span>        <span class="nx">fp</span> <span class="o">:=</span> <span class="nx">e</span><span class="p">.</span><span class="nx">labels</span><span class="p">.</span><span class="nf">FastFingerprint</span><span class="p">()</span>
+        <span class="nx">stream</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">batch</span><span class="p">[</span><span class="nx">fp</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+            <span class="nx">stream</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">logproto</span><span class="p">.</span><span class="nx">Stream</span><span class="p">{</span>
+                <span class="nx">Labels</span><span class="p">:</span> <span class="nx">e</span><span class="p">.</span><span class="nx">labels</span><span class="p">.</span><span class="nf">String</span><span class="p">(),</span>
+            <span class="p">}</span>
+            <span class="nx">batch</span><span class="p">[</span><span class="nx">fp</span><span class="p">]</span> <span class="p">=</span> <span class="nx">stream</span>
+        <span class="p">}</span>
+        <span class="nx">stream</span><span class="p">.</span><span class="nx">Entries</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">stream</span><span class="p">.</span><span class="nx">Entries</span><span class="p">,</span> <span class="nx">e</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span>
+        
+    <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">maxWait</span><span class="p">.</span><span class="nx">C</span><span class="p">:</span>
+        <span class="c1">// 到达每个批次的最大等待时间, 同样执行发送
+</span><span class="c1"></span>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">batch</span><span class="p">)</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+            <span class="nx">c</span><span class="p">.</span><span class="nf">send</span><span class="p">(</span><span class="nx">batch</span><span class="p">);</span>
+            <span class="nx">batchSize</span> <span class="p">=</span> <span class="mi">0</span>
+            <span class="nx">batch</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="nx">model</span><span class="p">.</span><span class="nx">Fingerprint</span><span class="p">]</span><span class="o">*</span><span class="nx">logproto</span><span class="p">.</span><span class="nx">Stream</span><span class="p">{}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+<p>这段代码中出现了 <code>Entry</code>(一条日志) 的 label, 看上去好像和一开始说的 &ldquo;loki只索引日志流&rdquo; 自相矛盾. 但其实这里只是代码上的实现细节, <code>Entry</code> 的 label 完全来自于服务发现, 最后发送时, label 也只是用于标识 <code>Stream</code>, 与上层抽象完全符合.</p>
+
+<p>另外, 用 <code>channel</code> + <code>select</code> 写 batch 逻辑真的挺优雅, 简单易读.</p>
+
+<h2 id="一些问题">一些问题<a href="#一些问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>目前 <code>promtail</code> 的代码还完全不到 production-ready, 它的本地没有 buffer, 并且没有处理 back pressure. 假设 loki 的流量太大处理不过来了, 那么 <code>promtail</code> 日志发送失败或超时直接就会丢日志. 同时, 文件读取位置, LAG(当前行数和文件最新行数的距离) 这些关键的监控指标都没暴露出来, 这是一个提 PR 的好时机.</p>
+
+<h1 id="loki-backend">Loki Backend<a href="#loki-backend" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>接下来是存储端, 这一部分在<a href="https://grafana.com/blog/2018/12/12/loki-prometheus-inspired-open-source-logging-for-cloud-natives/">官方博客</a>中就已经说得比较多了, 而且图很好看, 我也不拾人牙慧了. 挑几个重点看一下:</p>
+
+<h2 id="distributor">distributor<a href="#distributor" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><code>distributor</code> 直接接收来自 <code>promtail</code> 的日志写入请求, 请求体由 protobuf 编码, 格式如下:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 一次写入请求, 包含多段日志流
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">PushRequest</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Streams</span> <span class="p">[]</span><span class="o">*</span><span class="nx">Stream</span> <span class="s">`protobuf:&#34;bytes,1,rep,name=streams&#34; json:&#34;streams,omitempty&#34;`</span>
+<span class="p">}</span>
+<span class="c1">// 一段日志流, 包含它的 label, 以及这段日志流当中的每个日志事件: Entry
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Stream</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Labels</span>  <span class="kt">string</span>  <span class="s">`protobuf:&#34;bytes,1,opt,name=labels,proto3&#34; json:&#34;labels,omitempty&#34;`</span>
+    <span class="nx">Entries</span> <span class="p">[]</span><span class="nx">Entry</span> <span class="s">`protobuf:&#34;bytes,2,rep,name=entries&#34; json:&#34;entries&#34;`</span>
+<span class="p">}</span>
+<span class="c1">// 一个日志事件, 包含时间戳与内容
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">Entry</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">Timestamp</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span> <span class="s">`protobuf:&#34;bytes,1,opt,name=timestamp,stdtime&#34; json:&#34;timestamp&#34;`</span>
+    <span class="nx">Line</span>      <span class="kt">string</span>    <span class="s">`protobuf:&#34;bytes,2,opt,name=line,proto3&#34; json:&#34;line,omitempty&#34;`</span>
+<span class="p">}</span></code></pre></div>
+<p><code>distributor</code> 收到请求后, 会将一个 <code>PushRequest</code> 中的 <code>Stream</code> 根据 labels 拆分成多个 <code>PushRequest</code>, 这个过程使用一致性哈希:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="nx">streams</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="nx">streamTracker</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">Streams</span><span class="p">))</span>
+<span class="nx">keys</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">uint32</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">Streams</span><span class="p">))</span>
+<span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">stream</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">req</span><span class="p">.</span><span class="nx">Streams</span> <span class="p">{</span>
+    <span class="c1">// 获取每个 stream 的 label hash
+</span><span class="c1"></span>    <span class="nx">keys</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">keys</span><span class="p">,</span> <span class="nf">tokenFor</span><span class="p">(</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">stream</span><span class="p">.</span><span class="nx">Labels</span><span class="p">))</span>
+    <span class="nx">streams</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">stream</span> <span class="p">=</span> <span class="nx">stream</span>
+<span class="p">}</span>
+
+<span class="c1">// 根据 label hash 到 hash ring 上获取对应的 ingester 节点
+</span><span class="c1">// 这里的节点指 hash ring 上的节点, 一个节点可能有多个对等的 ingester 副本来做 HA
+</span><span class="c1"></span><span class="nx">replicationSets</span> <span class="o">:=</span> <span class="nx">d</span><span class="p">.</span><span class="nx">ring</span><span class="p">.</span><span class="nf">BatchGet</span><span class="p">(</span><span class="nx">keys</span><span class="p">,</span> <span class="nx">ring</span><span class="p">.</span><span class="nx">Write</span><span class="p">)</span>
+
+<span class="c1">// 将 Stream 按对应的 ingester 节点进行分组
+</span><span class="c1"></span><span class="nx">samplesByIngester</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">][]</span><span class="o">*</span><span class="nx">streamTracker</span><span class="p">{}</span>
+<span class="nx">ingesterDescs</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">ring</span><span class="p">.</span><span class="nx">IngesterDesc</span><span class="p">{}</span>
+<span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">replicationSet</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">replicationSets</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ingester</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">replicationSet</span><span class="p">.</span><span class="nx">Ingesters</span> <span class="p">{</span>
+        <span class="nx">samplesByIngester</span><span class="p">[</span><span class="nx">ingester</span><span class="p">.</span><span class="nx">Addr</span><span class="p">]</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">samplesByIngester</span><span class="p">[</span><span class="nx">ingester</span><span class="p">.</span><span class="nx">Addr</span><span class="p">],</span> <span class="o">&amp;</span><span class="nx">streams</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+        <span class="nx">ingesterDescs</span><span class="p">[</span><span class="nx">ingester</span><span class="p">.</span><span class="nx">Addr</span><span class="p">]</span> <span class="p">=</span> <span class="nx">ingester</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="nx">ingester</span><span class="p">,</span> <span class="nx">samples</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">samplesByIngester</span> <span class="p">{</span>
+    <span class="c1">// 每组 Stream[] 又作为一个 PushRequest, 下发给对应的 ingester 节点
+</span><span class="c1"></span>    <span class="nx">d</span><span class="p">.</span><span class="nf">sendSamples</span><span class="p">(</span><span class="nx">localCtx</span><span class="p">,</span> <span class="nx">ingester</span><span class="p">,</span> <span class="nx">samples</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">tracker</span><span class="p">)</span>
+<span class="p">}</span></code></pre></div>
+<p>在 <code>All in One</code> 的运行模式中, hash ring 直接存储在内存中. 在生产环境, 由于要起多个 <code>distributor</code> 节点做高可用, 这个 hash ring 会存储到外部的 Consul 集群中.</p>
+
+<h2 id="ingester">ingester<a href="#ingester" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><code>ingester</code> 接收 <code>distributor</code> 下发的 <code>PushRequest</code>, 也就是多段日志流(<code>[]Entry</code>). 在 <code>ingester</code> 内部会先将收到的 <code>[]Entry</code> Append 到内存中的 Chunk 流(<code>[]Chunk</code>). 同时会有一组 <code>goroutine</code> 异步将 Chunk 流存储到对象存储当中:</p>
+
+<p><img src="/img/loki/loki-ingester.png" alt="loki-ingester" /></p>
+
+<p>第一个 Append 过程很关键(代码有简化):</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="kd">func</span> <span class="p">(</span><span class="nx">i</span> <span class="o">*</span><span class="nx">instance</span><span class="p">)</span> <span class="nf">Push</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">req</span> <span class="o">*</span><span class="nx">logproto</span><span class="p">.</span><span class="nx">PushRequest</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">s</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">req</span><span class="p">.</span><span class="nx">Streams</span> <span class="p">{</span>
+        <span class="c1">// 将收到的日志流 Append 到内存中的日志流上, 同样地, 日志流按 label hash 索引
+</span><span class="c1"></span>        <span class="nx">fp</span> <span class="o">:=</span> <span class="nx">client</span><span class="p">.</span><span class="nf">FastFingerprint</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">labels</span><span class="p">)</span>
+        <span class="nx">stream</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">i</span><span class="p">.</span><span class="nx">streams</span><span class="p">[</span><span class="nx">fp</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+            <span class="nx">stream</span> <span class="p">=</span> <span class="nf">newStream</span><span class="p">(</span><span class="nx">fp</span><span class="p">,</span> <span class="nx">req</span><span class="p">.</span><span class="nx">labels</span><span class="p">)</span>
+            <span class="c1">// 这个过程中, 还会维护日志流的倒排索引(label -&gt; stream)
+</span><span class="c1"></span>            <span class="nx">i</span><span class="p">.</span><span class="nx">index</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nx">labels</span><span class="p">,</span> <span class="nx">fp</span><span class="p">)</span>
+            <span class="nx">i</span><span class="p">.</span><span class="nx">streams</span><span class="p">[</span><span class="nx">fp</span><span class="p">]</span> <span class="p">=</span> <span class="nx">stream</span>
+        <span class="p">}</span>
+        <span class="nx">stream</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">Entries</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">stream</span><span class="p">)</span> <span class="nf">Push</span><span class="p">(</span><span class="nx">_</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">entries</span> <span class="p">[]</span><span class="nx">logproto</span><span class="p">.</span><span class="nx">Entry</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">entries</span> <span class="p">{</span>
+        <span class="c1">// 假如当前 Chunk 已经关闭或者已经到达设定的最大 Chunk 大小, 则再创建一个新的 Chunk
+</span><span class="c1"></span>        <span class="k">if</span> <span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">closed</span> <span class="o">||</span> <span class="p">!</span><span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">chunk</span><span class="p">.</span><span class="nf">SpaceFor</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">entries</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span> <span class="p">{</span>
+            <span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span><span class="p">,</span> <span class="nx">chunkDesc</span><span class="p">{</span>
+                <span class="nx">chunk</span><span class="p">:</span> <span class="nx">chunkenc</span><span class="p">.</span><span class="nf">NewMemChunk</span><span class="p">(</span><span class="nx">chunkenc</span><span class="p">.</span><span class="nx">EncGZIP</span><span class="p">),</span>
+            <span class="p">})</span>
+        <span class="p">}</span>
+        <span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">chunks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="nx">chunk</span><span class="p">.</span><span class="nf">Append</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">entries</span><span class="p">[</span><span class="nx">i</span><span class="p">])</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">nil</span>
+<span class="p">}</span></code></pre></div>
+<p><code>Chunk</code> 其实就是多条日志构成的压缩包. 将日志压成 <code>Chunk</code> 的意义是可以直接存入对象存储, 而对象存储是最便宜的(便宜是 loki 的核心目标之一). 在 一个 <code>Chunk</code> 到达指定大小之前它就是 open 的, 会不断 Append 新的日志(<code>Entry</code>) 到里面. 而在达到大小之后, <code>Chunk</code> 就会关闭等待持久化(强制持久化也会关闭 Chunk, 比如关闭 <code>ingester</code> 实例时就会关闭所有的 Chunk并持久化).</p>
+
+<p>对 Chunk 的大小控制是一个调优要点:</p>
+
+<ul>
+<li>假如 Chunk 容量过小: 首先是导致压缩效率不高. 同时也会增加整体的 Chunk 数量, 导致倒排索引过大. 最后, 对象存储的操作次数也会变多, 带来额外的性能开销;</li>
+<li>假如 Chunk 过大: 一个 Chunk 的 open 时间会更长, 占用额外的内存空间, 同时, 也增加了丢数据的风险. 最后, Chunk 过大也会导致查询读放大, 比方说查一小时的数据却要下载整天的 Chunk;</li>
+</ul>
+
+<p>丢数据问题: 所有 Chunk 要在 close 之后才会进行存储. 因此假如 ingester 异常宕机, 处于 open 状态的 Chunk, 以及 close 了但还没有来得及持久化的 Chunk 数据都会丢失. 从这个角度来说, ingester 其实也是 stateful 的, 在生产中可以通过给 ingester 跑多个副本来解决这个问题. 另外, <code>ingester</code> 里似乎还没有写 WAL, 这感觉是一个 PR 机会, 可以练习一下写存储的基本功.</p>
+
+<p>异步存储过程就很简单了, 是一个一对多的生产者消费者模型:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 一个 goroutine 将所有的待存储的 chunks enqueue
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">i</span> <span class="o">*</span><span class="nx">Ingester</span><span class="p">)</span> <span class="nf">sweepStream</span><span class="p">(</span><span class="nx">instance</span> <span class="o">*</span><span class="nx">instance</span><span class="p">,</span> <span class="nx">stream</span> <span class="o">*</span><span class="nx">stream</span><span class="p">,</span> <span class="nx">immediate</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="c1">// 有一组待存储的队列(默认16个), 取模找一个队列把要存储的 chunk 的引用塞进去
+</span><span class="c1"></span>    <span class="nx">flushQueueIndex</span> <span class="o">:=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">uint64</span><span class="p">(</span><span class="nx">stream</span><span class="p">.</span><span class="nx">fp</span><span class="p">)</span> <span class="o">%</span> <span class="nb">uint64</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">ConcurrentFlushes</span><span class="p">))</span>
+    <span class="nx">firstTime</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">stream</span><span class="p">.</span><span class="nx">chunks</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">chunk</span><span class="p">.</span><span class="nf">Bounds</span><span class="p">()</span>
+    <span class="nx">i</span><span class="p">.</span><span class="nx">flushQueues</span><span class="p">[</span><span class="nx">flushQueueIndex</span><span class="p">].</span><span class="nf">Enqueue</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">flushOp</span><span class="p">{</span>
+        <span class="nx">model</span><span class="p">.</span><span class="nf">TimeFromUnixNano</span><span class="p">(</span><span class="nx">firstTime</span><span class="p">.</span><span class="nf">UnixNano</span><span class="p">()),</span> <span class="nx">instance</span><span class="p">.</span><span class="nx">instanceID</span><span class="p">,</span>
+        <span class="nx">stream</span><span class="p">.</span><span class="nx">fp</span><span class="p">,</span> <span class="nx">immediate</span><span class="p">,</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+
+<span class="c1">// 每个队列都有一个 goroutine 作为消费者在 dequeue
+</span><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">i</span> <span class="o">*</span><span class="nx">Ingester</span><span class="p">)</span> <span class="nf">flushLoop</span><span class="p">(</span><span class="nx">j</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">{</span>
+        <span class="nx">op</span> <span class="o">:=</span> <span class="nx">i</span><span class="p">.</span><span class="nx">flushQueues</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nf">Dequeue</span><span class="p">()</span>
+        <span class="c1">// 实际的存储操作在这个方法中, 存储完成后, Chunk 会被清理掉
+</span><span class="c1"></span>        <span class="nx">i</span><span class="p">.</span><span class="nf">flushUserSeries</span><span class="p">(</span><span class="nx">op</span><span class="p">.</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">op</span><span class="p">.</span><span class="nx">fp</span><span class="p">,</span> <span class="nx">op</span><span class="p">.</span><span class="nx">immediate</span><span class="p">)</span>
+
+        <span class="c1">// 存储失败的 chunk 会重新塞回队列中
+</span><span class="c1"></span>        <span class="k">if</span> <span class="nx">op</span><span class="p">.</span><span class="nx">immediate</span> <span class="o">&amp;&amp;</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+            <span class="nx">op</span><span class="p">.</span><span class="nx">from</span> <span class="p">=</span> <span class="nx">op</span><span class="p">.</span><span class="nx">from</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="nx">flushBackoff</span><span class="p">)</span>
+            <span class="nx">i</span><span class="p">.</span><span class="nx">flushQueues</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nf">Enqueue</span><span class="p">(</span><span class="nx">op</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+<p>最后是清理过程, 同样是一个单独的 goroutine 定时在跑. <code>ingester</code> 里的所有 <code>Chunk</code> 会在持久化之后隔一小段时间才被清理掉. 这个&rdquo;一小段时间&rdquo;由 <code>chunk-retain-time</code> 参数进行控制(默认 15 分钟). 这么做是为了加速热点数据的读取(真正被人看的日志中, 有99%都是生成后的一小段时间内被查看的).</p>
+
+<h2 id="querier">Querier<a href="#querier" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>最后是 <code>Querier</code>, 这个比较简单了, 大致逻辑就是根据<code>chunk index</code>中的索引信息, 请求 <code>ingester</code> 和对象存储. 合并后返回. 这里主要看一下&rdquo;合并&rdquo;操作:</p>
+
+<blockquote>
+<p>这里的代码其实可以作为一个简单的面试题: 假如你的日志按 class 分成了上百个文件, 现在要将它们合并输出(按时间顺序), 你会怎么做?</p>
+</blockquote>
+
+<p><code>loki</code> 里用了堆, 时间正序就用最小堆, 时间逆序就用最大堆:</p>
+<div class="highlight"><pre class="chroma"><code class="language-go" data-lang="go"><span class="c1">// 这部分代码实现了一个简单的二叉堆, MinHeap 和 MaxHeap 实现了相反的 `Less()` 方法
+</span><span class="c1"></span><span class="kd">type</span> <span class="nx">iteratorHeap</span> <span class="p">[]</span><span class="nx">EntryIterator</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="nx">iteratorHeap</span><span class="p">)</span> <span class="nf">Len</span><span class="p">()</span> <span class="kt">int</span>            <span class="p">{</span> <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="nx">h</span><span class="p">)</span> <span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="nx">iteratorHeap</span><span class="p">)</span> <span class="nf">Swap</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span> <span class="kt">int</span><span class="p">)</span>       <span class="p">{</span> <span class="nx">h</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="nx">h</span><span class="p">[</span><span class="nx">j</span><span class="p">]</span> <span class="p">=</span> <span class="nx">h</span><span class="p">[</span><span class="nx">j</span><span class="p">],</span> <span class="nx">h</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="nx">iteratorHeap</span><span class="p">)</span> <span class="nf">Peek</span><span class="p">()</span> <span class="nx">EntryIterator</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">h</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">iteratorHeap</span><span class="p">)</span> <span class="nf">Push</span><span class="p">(</span><span class="nx">x</span> <span class="kd">interface</span><span class="p">{})</span> <span class="p">{</span>
+    <span class="o">*</span><span class="nx">h</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="o">*</span><span class="nx">h</span><span class="p">,</span> <span class="nx">x</span><span class="p">.(</span><span class="nx">EntryIterator</span><span class="p">))</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">iteratorHeap</span><span class="p">)</span> <span class="nf">Pop</span><span class="p">()</span> <span class="kd">interface</span><span class="p">{}</span> <span class="p">{</span>
+    <span class="nx">old</span> <span class="o">:=</span> <span class="o">*</span><span class="nx">h</span>
+    <span class="nx">n</span> <span class="o">:=</span> <span class="nb">len</span><span class="p">(</span><span class="nx">old</span><span class="p">)</span>
+    <span class="nx">x</span> <span class="o">:=</span> <span class="nx">old</span><span class="p">[</span><span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="o">*</span><span class="nx">h</span> <span class="p">=</span> <span class="nx">old</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="nx">n</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nx">x</span>
+<span class="p">}</span>
+<span class="kd">type</span> <span class="nx">iteratorMinHeap</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">iteratorHeap</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="nx">iteratorMinHeap</span><span class="p">)</span> <span class="nf">Less</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">iteratorHeap</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nf">Entry</span><span class="p">().</span><span class="nx">Timestamp</span><span class="p">.</span><span class="nf">Before</span><span class="p">(</span><span class="nx">h</span><span class="p">.</span><span class="nx">iteratorHeap</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nf">Entry</span><span class="p">().</span><span class="nx">Timestamp</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">type</span> <span class="nx">iteratorMaxHeap</span> <span class="kd">struct</span> <span class="p">{</span>
+    <span class="nx">iteratorHeap</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="nx">iteratorMaxHeap</span><span class="p">)</span> <span class="nf">Less</span><span class="p">(</span><span class="nx">i</span><span class="p">,</span> <span class="nx">j</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">h</span><span class="p">.</span><span class="nx">iteratorHeap</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nf">Entry</span><span class="p">().</span><span class="nx">Timestamp</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="nx">h</span><span class="p">.</span><span class="nx">iteratorHeap</span><span class="p">[</span><span class="nx">j</span><span class="p">].</span><span class="nf">Entry</span><span class="p">().</span><span class="nx">Timestamp</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// 将一组 Stream 的 iterator 合并成一个 HeapIterator
+</span><span class="c1"></span><span class="kd">func</span> <span class="nf">NewHeapIterator</span><span class="p">(</span><span class="nx">is</span> <span class="p">[]</span><span class="nx">EntryIterator</span><span class="p">,</span> <span class="nx">direction</span> <span class="nx">logproto</span><span class="p">.</span><span class="nx">Direction</span><span class="p">)</span> <span class="nx">EntryIterator</span> <span class="p">{</span>
+    <span class="nx">result</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">heapIterator</span><span class="p">{}</span>
+    <span class="k">switch</span> <span class="nx">direction</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="nx">logproto</span><span class="p">.</span><span class="nx">BACKWARD</span><span class="p">:</span>
+        <span class="nx">result</span><span class="p">.</span><span class="nx">heap</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">iteratorMaxHeap</span><span class="p">{}</span>
+    <span class="k">case</span> <span class="nx">logproto</span><span class="p">.</span><span class="nx">FORWARD</span><span class="p">:</span>
+        <span class="nx">result</span><span class="p">.</span><span class="nx">heap</span> <span class="p">=</span> <span class="o">&amp;</span><span class="nx">iteratorMinHeap</span><span class="p">{}</span>
+    <span class="k">default</span><span class="p">:</span>
+        <span class="nb">panic</span><span class="p">(</span><span class="s">&#34;bad direction&#34;</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="c1">// pre-next each iterator, drop empty.
+</span><span class="c1"></span>    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">is</span> <span class="p">{</span>
+        <span class="nx">result</span><span class="p">.</span><span class="nf">requeue</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">result</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">i</span> <span class="o">*</span><span class="nx">heapIterator</span><span class="p">)</span> <span class="nf">requeue</span><span class="p">(</span><span class="nx">ei</span> <span class="nx">EntryIterator</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">ei</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">heap</span><span class="p">.</span><span class="nf">Push</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">,</span> <span class="nx">ei</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ei</span><span class="p">.</span><span class="nf">Error</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nx">i</span><span class="p">.</span><span class="nx">errs</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">errs</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">helpers</span><span class="p">.</span><span class="nf">LogError</span><span class="p">(</span><span class="s">&#34;closing iterator&#34;</span><span class="p">,</span> <span class="nx">ei</span><span class="p">.</span><span class="nx">Close</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">func</span> <span class="p">(</span><span class="nx">i</span> <span class="o">*</span><span class="nx">heapIterator</span><span class="p">)</span> <span class="nf">Next</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="nx">i</span><span class="p">.</span><span class="nx">curr</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+        <span class="nx">i</span><span class="p">.</span><span class="nf">requeue</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">curr</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nf">Len</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="kc">false</span>
+    <span class="p">}</span>
+    <span class="nx">i</span><span class="p">.</span><span class="nx">curr</span> <span class="p">=</span> <span class="nx">heap</span><span class="p">.</span><span class="nf">Pop</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">).(</span><span class="nx">EntryIterator</span><span class="p">)</span>
+    <span class="nx">currEntry</span> <span class="o">:=</span> <span class="nx">i</span><span class="p">.</span><span class="nx">curr</span><span class="p">.</span><span class="nf">Entry</span><span class="p">()</span>
+    <span class="c1">// keep popping entries off if they match, to dedupe
+</span><span class="c1"></span>    <span class="k">for</span> <span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nf">Len</span><span class="p">()</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+        <span class="nx">next</span> <span class="o">:=</span> <span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nf">Peek</span><span class="p">()</span>
+        <span class="nx">nextEntry</span> <span class="o">:=</span> <span class="nx">next</span><span class="p">.</span><span class="nf">Entry</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">!</span><span class="nx">currEntry</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">nextEntry</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">break</span>
+        <span class="p">}</span>
+
+        <span class="nx">next</span> <span class="p">=</span> <span class="nx">heap</span><span class="p">.</span><span class="nf">Pop</span><span class="p">(</span><span class="nx">i</span><span class="p">.</span><span class="nx">heap</span><span class="p">).(</span><span class="nx">EntryIterator</span><span class="p">)</span>
+        <span class="nx">i</span><span class="p">.</span><span class="nf">requeue</span><span class="p">(</span><span class="nx">next</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="kc">true</span>
+<span class="p">}</span></code></pre></div>
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>写源码分析的文章还是挺累的, 虽然前面说了不拾人牙慧, 但最后还是要重复一下 Grafana 官方已经说了的一些要点, 那就是 loki 的思路和 <code>ELK</code> 这样的思路确实完全不同. loki 不索引日志内容大大减轻了存储成本, 同时聚焦于 <code>distribute grep</code>, 而不再考虑各种分析,报表的花架子, 也让&rdquo;日志&rdquo;的作用更为专一: 服务于可观察性.</p>
+
+<p>另外, <code>Grafana loki</code> 为 Grafana 生态填上了可观察性中的重要一环, logging. 再加上早已成为 CloudNative 中可观察性事实标准的 Prometheus + Grafana Stack, Grafana 生态已经只缺 Trace 这一块了(他们的 Slides 中提到已经在做了), 未来可期.</p>
+
+<p>最后想说的是, 现今摩尔定律已近失效, 没有了每年翻一番的硬件性能, 整个后端架构需要更精细化地运作. 像以前那样用昂贵的全文索引或者列式存储直接存大量低价值的日志信息(99%没人看)已经不合时宜了. 在程序的运行信息(&ldquo;日志&rdquo;)和埋点,用户行为等业务信息(也是&rdquo;日志&rdquo;)之间进行业务,抽象与架构上的逐步切分, 让各自的架构适应到各自的 ROI 最大的那个点上, 会是未来的趋势, 而 <code>Grafana Loki</code> 则恰到好处地把握住了这个趋势.</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/monitoring">monitoring</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>4453 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2018-12-14 14:52</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/interview-experience/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>写在19年初的后端社招面试经历(两年经验): 蚂蚁 头条 PingCAP</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/linux-memory-monitring/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Linux Slab 导致的内存使用率误报警</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

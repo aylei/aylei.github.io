@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kubernetes on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/kubernetes/</link>
+    <description>Recent content in kubernetes on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Tue, 29 Oct 2019 13:27:12 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/kubernetes/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>高效编排有状态应用 —— TiDB 的云原生实践与思考</title>
+      <link>https://www.aleiwu.com/post/qcon-tidb-operator/</link>
+      <pubDate>Mon, 21 Oct 2019 16:41:00 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/qcon-tidb-operator/</guid>
+      <description>本文为 2019 QCon 全球软件开发大会（上海） 专题演讲实录。 导语 云原生时代以降，无状态应用以其天生的可替换性率先成为各类编排系统的宠儿。以 Kubernetes 为代表的编排</description>
+    </item>
+    
+    <item>
+      <title>我的 Promtheus 到底啥时候报警？</title>
+      <link>https://www.aleiwu.com/post/prometheus-alert-why/</link>
+      <pubDate>Tue, 29 Oct 2019 13:27:12 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-alert-why/</guid>
+      <description>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 中的 ConfigMap 配置更新(续)</title>
+      <link>https://www.aleiwu.com/post/configmap-rollout-followup/</link>
+      <pubDate>Wed, 15 May 2019 21:03:16 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/configmap-rollout-followup/</guid>
+      <description>之前的文章 Kubernetes Pod 中的 ConfigMap 更新 中，我总结了三种 ConfigMap 或 Secret 的更新方法: 通过 Kubelet 的周期性 Remount 做热更新，通过修改对象中的 PodTemplate 触发滚动更新，以及通过自定义 Controller 监听 ConfigMap 触</description>
+    </item>
+    
+    <item>
+      <title>搞搞 Prometheus: Alertmanager</title>
+      <link>https://www.aleiwu.com/post/alertmanager/</link>
+      <pubDate>Sun, 21 Apr 2019 21:55:47 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/alertmanager/</guid>
+      <description>警报是监控系统中必不可少的一块, 当然了, 也是最难搞的一块. 我们乍一想, 警报似乎很简单一件事: 假如发生了异常情况, 发送或邮件/消息通知给某人或</description>
+    </item>
+    
+    <item>
+      <title>Jsonnet 简明教程与应用</title>
+      <link>https://www.aleiwu.com/post/jsonnet-grafana/</link>
+      <pubDate>Sun, 07 Apr 2019 13:48:47 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/jsonnet-grafana/</guid>
+      <description>Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&amp;rdquo</description>
+    </item>
+    
+    <item>
+      <title>Kubectl 效率提升指北</title>
+      <link>https://www.aleiwu.com/post/kubectl-guru/</link>
+      <pubDate>Sun, 31 Mar 2019 16:15:33 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/kubectl-guru/</guid>
+      <description>写水文啦啦啦啦啦啦啦 kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同</description>
+    </item>
+    
+    <item>
+      <title>搞搞 Prometheus：Prometheus Operator</title>
+      <link>https://www.aleiwu.com/post/prometheus-operator/</link>
+      <pubDate>Sun, 24 Mar 2019 14:37:32 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-operator/</guid>
+      <description>前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 中如何保证优雅地停止 Pod</title>
+      <link>https://www.aleiwu.com/post/tidb-opeartor-webhook/</link>
+      <pubDate>Sun, 17 Mar 2019 15:42:40 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/tidb-opeartor-webhook/</guid>
+      <description>一直以来我对优雅地停止 Pod 这件事理解得很单纯: 不就利用是 PreStop hook 做优雅退出吗? 但这周听了组里大哥的教诲之后，发现很多场景下 PreStop hook 并不能很好地完成需求</description>
+    </item>
+    
+    <item>
+      <title>白话 Kubernetes Runtime</title>
+      <link>https://www.aleiwu.com/post/cncf-runtime-landscape/</link>
+      <pubDate>Wed, 06 Mar 2019 13:21:59 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/cncf-runtime-landscape/</guid>
+      <description>回想最开始接触 k8s 的时候, 经常搞不懂 CRI 和 OCI 的联系和区别, 也不知道为啥要垫那么多的 &amp;ldquo;shim&amp;rdquo;(尤其是 containerd-shim 和 dockershim 这两个完全没</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes Pod 中的 ConfigMap 配置更新</title>
+      <link>https://www.aleiwu.com/post/configmap-hotreload/</link>
+      <pubDate>Sun, 24 Feb 2019 20:04:16 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/configmap-hotreload/</guid>
+      <description>业务场景里经常会碰到配置更新的问题，在 &amp;ldquo;GitOps&amp;ldquo;模式下，Kubernetes 的 ConfigMap 或 Secret 是非常好的配置管理机制。但</description>
+    </item>
+    
+  </channel>
+</rss>

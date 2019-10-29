@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/kubectl-debug-intro/</loc>
+    <lastmod>2019-07-27T12:19:47+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/kubecon-shanghai-2019/</loc>
+    <lastmod>2019-07-27T12:19:47+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/tidb-operator-design/</loc>
+    <lastmod>2019-07-27T12:19:47+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/qcon-tidb-operator/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/prometheus-alert-why/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/kubernetes/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/prometheus/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/tidb/</loc>
+    <lastmod>2019-10-29T13:28:39+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/configmap-rollout-followup/</loc>
+    <lastmod>2019-06-01T22:25:49+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/monitoring/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/alertmanager/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/aliyun-exporter-bp/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/jsonnet-grafana/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/kubectl-guru/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/prometheus-operator/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/tidb-opeartor-webhook/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/container/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/cncf-runtime-landscape/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/moments/learning-by-teaching/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/moments/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/configmap-hotreload/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/moments/2019-okr/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/prometheus-bp/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/about/</loc>
+    <lastmod>2019-05-14T19:09:55+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/golang/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/java/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/interview-experience/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/grafana-loki/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/linux-memory-monitring/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/architecture/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/tags/database/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.aleiwu.com/post/vimur.cn/</loc>
+    <lastmod>2019-05-14T19:06:26+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+</urlset>

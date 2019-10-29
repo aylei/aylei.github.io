@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Kubernetes 中的 ConfigMap 配置更新(续)">
+<meta itemprop="description" content="之前的文章 Kubernetes Pod 中的 ConfigMap 更新 中，我总结了三种 ConfigMap 或 Secret 的更新方法: 通过 Kubelet 的周期性 Remount 做热更新，通过修改对象中的 PodTemplate 触发滚动更新，以及通过自定义 Controller 监听 ConfigMap 触">
+
+
+<meta itemprop="datePublished" content="2019-05-15T21:03:16&#43;08:00" />
+<meta itemprop="dateModified" content="2019-06-01T22:25:49&#43;08:00" />
+<meta itemprop="wordCount" content="2115">
+
+
+
+<meta itemprop="keywords" content="kubernetes," />
+<meta property="og:title" content="Kubernetes 中的 ConfigMap 配置更新(续)" />
+<meta property="og:description" content="之前的文章 Kubernetes Pod 中的 ConfigMap 更新 中，我总结了三种 ConfigMap 或 Secret 的更新方法: 通过 Kubelet 的周期性 Remount 做热更新，通过修改对象中的 PodTemplate 触发滚动更新，以及通过自定义 Controller 监听 ConfigMap 触" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/configmap-rollout-followup/" />
+<meta property="article:published_time" content="2019-05-15T21:03:16+08:00" />
+<meta property="article:modified_time" content="2019-06-01T22:25:49+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubernetes 中的 ConfigMap 配置更新(续)"/>
+<meta name="twitter:description" content="之前的文章 Kubernetes Pod 中的 ConfigMap 更新 中，我总结了三种 ConfigMap 或 Secret 的更新方法: 通过 Kubelet 的周期性 Remount 做热更新，通过修改对象中的 PodTemplate 触发滚动更新，以及通过自定义 Controller 监听 ConfigMap 触"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Kubernetes 中的 ConfigMap 配置更新(续)</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>May 15, 2019</span></div>
+				<h1>Kubernetes 中的 ConfigMap 配置更新(续)</h1>
+			</header>
+			<div class="content">
+				
+
+<blockquote>
+<p>之前的文章 <a href="https://aleiwu.com/post/configmap-hotreload/">Kubernetes Pod 中的 ConfigMap 更新</a> 中，我总结了三种 ConfigMap 或 Secret 的更新方法: <a href="https://aleiwu.com/post/configmap-hotreload/#%E7%83%AD%E6%9B%B4%E6%96%B0%E4%BA%8C-%E4%BD%BF%E7%94%A8-sidecar-%E6%9D%A5%E7%9B%91%E5%90%AC%E6%9C%AC%E5%9C%B0%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%8F%98%E6%9B%B4">通过 Kubelet 的周期性 Remount 做热更新</a>，<a href="https://aleiwu.com/post/configmap-hotreload/#pod-%E6%BB%9A%E5%8A%A8%E6%9B%B4%E6%96%B0%E4%B8%80-%E4%BF%AE%E6%94%B9-ci-%E6%B5%81%E7%A8%8B">通过修改对象中的 PodTemplate 触发滚动更新</a>，以及<a href="https://aleiwu.com/post/configmap-hotreload/#pod-%E6%BB%9A%E5%8A%A8%E6%9B%B4%E6%96%B0%E4%BA%8C-controller">通过自定义 Controller 监听 ConfigMap 触发更新</a>。但在最近的业务实践中，却碰到了这些办法都不好使的情况。这篇文章就将更为深入地讨论这个主题。</p>
+</blockquote>
+
+<h1 id="问题在哪">问题在哪？<a href="#问题在哪" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>这次碰到的问题，并不是上面的办法<strong>无法实现配置热更新</strong>，而是<strong>无法实现配置滚动发布</strong>。我们不妨看一个常见的例子，一个 <code>Deployment</code> 引用了一个 <code>ConfigMap</code> (简洁起见，删去了 selector 和 labels 等字段)：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>apps/v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Deployment<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>nginx-deployment<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>replicas<span class="p">:</span><span class="w"> </span><span class="m">3</span><span class="w">
+</span><span class="w">  </span>template<span class="p">:</span><span class="w">
+</span><span class="w">    </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">      </span>nginx-config-md5<span class="p">:</span><span class="w"> </span>d41d8cd98f00b204e9800998ecf8427e<span class="w">
+</span><span class="w">    </span>spec<span class="p">:</span><span class="w">
+</span><span class="w">      </span>containers<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>nginx<span class="w">
+</span><span class="w">        </span>image<span class="p">:</span><span class="w"> </span>nginx<span class="w">
+</span><span class="w">        </span>volumeMounts<span class="p">:</span><span class="w">
+</span><span class="w">        </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>nginx-config<span class="w">
+</span><span class="w">          </span>mountPath<span class="p">:</span><span class="w"> </span>/etc/config<span class="w">
+</span><span class="w">      </span>volumes<span class="p">:</span><span class="w">
+</span><span class="w">      </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>config-volume<span class="w">
+</span><span class="w">        </span>configMap<span class="p">:</span><span class="w"> 
+</span><span class="w">          </span>name<span class="p">:</span><span class="w"> </span>nginx-config<span class="w">
+</span><span class="w"></span>---<span class="w">
+</span><span class="w"></span>apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>ConfigMap<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>nginx-config<span class="w">
+</span><span class="w"></span>data<span class="p">:</span><span class="w">
+</span><span class="w">  </span>nginx.conf<span class="p">:</span><span class="w"> </span>|<span class="sd">-
+</span><span class="sd">    ## some configurations...</span></code></pre></div>
+<p>这里我们采用了 <a href="https://aleiwu.com/post/configmap-hotreload/#pod-%E6%BB%9A%E5%8A%A8%E6%9B%B4%E6%96%B0%E4%B8%80-%E4%BF%AE%E6%94%B9-ci-%E6%B5%81%E7%A8%8B">通过修改对象中的 PodTemplate 触发滚动更新</a> 这个方案来做 ConfigMap 的更新：</p>
+
+<ul>
+<li>每次部署时，计算 ConfigMap 的摘要(e.g. MD5)，并填入 PodTemplate 的 Annotation 中;</li>
+<li>假如 ConfigMap 发生变化，则摘要也会变化[^1],此会触发一次 Deployment 的滚动更新;</li>
+</ul>
+
+<p>现在，我们更新了一次配置，但很不幸新的配置是<strong>错误</strong>的，使用错误配置的 Pod 将无法正常工作（比如无法通过 <code>readinessProbe</code> 的检查）。最终，滚定更新的过程会卡住，错误的配置并不会让你的 Deployment 整个宕掉。</p>
+
+<p>真的是这样吗？</p>
+
+<p>并不是！</p>
+
+<p>问题在这里就显现出来了，<code>nginx-config</code> 已经更新成了错误的值，尽管<strong>尚未重建的 Pod</strong>目前暂且健康，但是，一旦这些 Pod 宕掉发生 Pod 重建，或者 Pod 中的容器重新读取了一次配置，这些 Pod 就会进入异常状态：整个集群现在是摇摇欲坠的。</p>
+
+<p>问题的根源是，<strong>在原地更新 ConfigMap 或 Secret 时，我们没有做滚动发布，而是一次性将新配置更新到了整个集群的所有实例中</strong>，我们所谓的&rdquo;滚动更新&rdquo;其实是在控制各个实例<strong>何时读取新配置</strong>，但由于 Pod 随时可能挂掉重建，我们是无法做到准确控制这个过程的。</p>
+
+<p>假如你认为“错误的配置“很少见，那一个更有力的例子是 StatefulSet 的灰度发布（使用 StatefulSet 的 Partition 字段控制只把部分副本更新到新的 ControllerRevision)，假如我们 StatefulSet 的配置也做灰度发布，那配置更新的问题就更明显了。</p>
+
+<p>显然，同样的问题对于另两种更新方案也存在。当然，这并不是说这三种方式是错误的，它们也有自己适用的场景，只是当我们需要配置文件的更新滚动发布时，它们就不再适用了。</p>
+
+<h1 id="解决方案">解决方案<a href="#解决方案" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>上述方案的问题在于原地更新，要解决这个问题，我们只需要在每次 ConfigMap 变化时，重新生成一个 ConfigMap，再更新 Deployment 使用这个新的 ConfigMap 即可。而重新生成 ConfigMap 最简单的方式就是在 ConfigMap 的命名中加上 ConfigMap 的 data 值计算出的摘要，比如:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">apiVersion<span class="p">:</span><span class="w"> </span>v1<span class="w">
+</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>ConfigMap<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>nginx-config-d41d8cd98f00b204e9800998ecf8427e<span class="w">
+</span><span class="w"></span>data<span class="p">:</span><span class="w">
+</span><span class="w">  </span>nginx.conf<span class="p">:</span><span class="w"> </span>|<span class="sd">-
+</span><span class="sd">    ## some configurations...</span></code></pre></div>
+<p>事实上，ConfigMap 滚动更新（ConfigMap Rollout）是社区中历时最久而尚未解决的问题之一（<a href="22368">#22368</a>), 到目前为止，解决这个问题的方向也正是&rdquo;每次更新新建一个 ConfigMap&rdquo;这种&rdquo;Immutable ConfigMap&rdquo;模式(详见<a href="https://github.com/kubernetes/kubernetes/issues/22368#issuecomment-421141188">这条评论</a>)。</p>
+
+<p>这个方案自然就带来两个问题：</p>
+
+<ul>
+<li>如何做到每次配置文件更新时，都创建一个新的 ConfigMap？
+
+<ul>
+<li>目前社区的态度是把这一步放到 Client 来解决，比如 kustomize 和 helm</li>
+</ul></li>
+<li>历史 ConfigMap 会不断积累，怎么回收？
+
+<ul>
+<li>针对这点，社区希望在服务端实现一个 GC 机制来清理没有任何资源引用的 ConfigMap
+<br /></li>
+</ul></li>
+</ul>
+
+<p>当然，把逻辑放到 Client 里势必造成重复造轮子的问题：每一个工具都必须实现一遍类似的逻辑。因此也有人提议通过 Snapshot 的方式把逻辑全都推到服务端，这个方向目前八字都还没一撇，我们且按下不表。至少到现在为止，在 Client 做 ConfigMap 的新建与 Deployment 等对象的更新是最成熟的 ConfigMap 滚动更新方案。</p>
+
+<p>因此，我们就在最后一节来说明 Helm 和 Kustomize 里怎么实现这个方案。</p>
+
+<h1 id="helm-和-kustomize-的实践方式">Helm 和 Kustomize 的实践方式<a href="#helm-和-kustomize-的实践方式" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<h2 id="kustomize">Kustomize<a href="#kustomize" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>kustomize 对这个方案有内置的支持，只需要使用 <code>configGenerator</code> 即可：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">configMapGenerator<span class="p">:</span><span class="w">
+</span><span class="w"></span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>my-configmap<span class="w">
+</span><span class="w">  </span>files<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>common.properties</code></pre></div>
+<p>这段 yaml 在 kustomize 中就会生成一个 ConfigMap 对象，这个对象的 data 来自于 <code>common.properties</code> 文件，并且 name 中会加上该文件的 SHA 值作为后缀。</p>
+
+<p>在 kustomize 的其它 layer 中，只要以 <code>my-configmap</code> 作为 name 引用这个 ConfigMap 即可，当最终渲染时，kustomize 会自动进行替换操作。</p>
+
+<h2 id="helm">Helm<a href="#helm" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>首先注意，Helm 在 <a href="https://github.com/helm/helm/blob/master/docs/charts_tips_and_tricks.md#automatically-roll-deployments-when-configmaps-or-secrets-change">tips and tricks</a> 里提到的修改 Annotation 的方案是无法做到滚动更新的，原因见第一节，假如你想要的是合理的滚动更新的话，注意不要踩到坑里去。</p>
+
+<p>Helm 对于这个方案没有比较好的支持，需要依托于 named template 机制来封装一下。思路是定义一个 named template，用于渲染 ConfigMap 的 data，然后针对这个 named template 计算 SHA 值并添加到 ConfigMap 名字中。</p>
+<div class="highlight"><pre class="chroma">{{/*
+定义一个 Named Template，将配置文件渲染为 ConfigMap
+*/}}
+{{- define &#34;my-configmap.data&#34; -}}
+config.toml: |-
+{{ include (print $.Template.BasePath &#34;/_config.toml.tpl&#34;) . | indent 2 }}
+another-config.yaml: |-
+{{ include (print $.Template.BasePath &#34;/_another-config.yaml.tpl&#34;) . | indent 2 }}
+{{- end -}}
+
+{{/*
+ConfigMap 部分
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap-{{ include &#34;my-configmap.data&#34; . | sha256sum | trunc 8 }}
+data:
+{{ include &#34;my-configmap.data&#34; . | indent 2 }}
+---
+{{/*
+Deployment 部分
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 3
+  template:
+    spec:
+      volumes:
+        - name: my-config
+          configMap:
+            name: my-configmap-{{ include &#34;my-configmap.data&#34; . | sha256sum | trunc 8 }}
+...(其它字段略)</pre></div>
+<p>关键点只有一个，那就是把 configmap 的 data 定义成 Named Template，这样就可以很容易地访问这个模板的渲染值并且计算 SHA。</p>
+
+<p>当然上面只是个示例，正式写 chart 时，还要做好合理的文件切分，比如把 Named Template 放到 <code>_helpers.tpl</code>文件中统一维护。</p>
+
+<blockquote>
+<p>当资源名字改变后，Helm 会自动删除旧的资源，因此使用 Helm 时不必担心 ConfigMap 累计过多的问题。缺点就是我们无法脱离 helm 去做 rollback。</p>
+</blockquote>
+
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>事实上这种从 Client 端出发的解决方案并不是很优雅，或多或少都有比较 Hack 的感觉。尽管客观情况是 ConfigMap 和 Secret 现在的用法已经完全深入到所有的 Kubernetes 使用场景中，对于如此基础的资源，很难大刀阔斧地去做改进，甚至于小修小补都是&rdquo;牵一发而动全身&rdquo;，需要非常慎重地去考虑。但社区的创造力是无穷的，最近又有相关的 <a href="https://github.com/kubernetes/enhancements/pull/948">KEP</a> 涌现出来(尽管还很粗糙)，相信在不远的将来，我们会看到更好用的 ConfigMap Rollout 管理机制。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2115 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-05-15 13:03</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/fd0b50f03f65cdd51e0c218a20639ea5d3ff53e4" target="_blank" rel="noopener">fd0b50f</a> @ 2019-06-01</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#问题在哪">问题在哪？</a></li>
+<li><a href="#解决方案">解决方案</a></li>
+<li><a href="#helm-和-kustomize-的实践方式">Helm 和 Kustomize 的实践方式</a>
+<ul>
+<li><a href="#kustomize">Kustomize</a></li>
+<li><a href="#helm">Helm</a></li>
+</ul></li>
+<li><a href="#结语">结语</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/prometheus-alert-why/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>我的 Promtheus 到底啥时候报警？</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/alertmanager/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>搞搞 Prometheus: Alertmanager</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

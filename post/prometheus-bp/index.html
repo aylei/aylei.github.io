@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Prometheus 不完全避坑指南">
+<meta itemprop="description" content="Prometheus 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控">
+
+
+<meta itemprop="datePublished" content="2019-02-16T16:00:05&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="3159">
+
+
+
+<meta itemprop="keywords" content="monitoring," />
+<meta property="og:title" content="Prometheus 不完全避坑指南" />
+<meta property="og:description" content="Prometheus 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/prometheus-bp/" />
+<meta property="article:published_time" content="2019-02-16T16:00:05+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Prometheus 不完全避坑指南"/>
+<meta name="twitter:description" content="Prometheus 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Prometheus 不完全避坑指南</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Feb 16, 2019</span></div>
+				<h1>Prometheus 不完全避坑指南</h1>
+			</header>
+			<div class="content">
+				
+
+<p><a href="https://github.com/prometheus/prometheus">Prometheus</a> 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控信息。我在工作中也比较深入地使用过 Prometheus，最大的感受就是它非常容易维护，突出一个简单省心成本低。当然，这当中也免不了踩过一些坑，下面就总结一下。</p>
+
+<blockquote>
+<p>假如你没有用过 Prometheus，建议先看一遍 <a href="https://prometheus.io/docs/introduction/overview/">官方文档</a></p>
+</blockquote>
+
+<h2 id="接受准确性与可靠性的权衡">接受准确性与可靠性的权衡<a href="#接受准确性与可靠性的权衡" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Prometheus 作为一个基于指标(Metric)的监控系统，在设计上就放弃了一部分数据准确性：</p>
+
+<ul>
+<li>比如在两次采样的间隔中，内存用量有一个瞬时小尖峰，那么这次小尖峰我们是观察不到的；</li>
+<li>再比如 QPS、RT、P95、P99 这些值都只能估算，无法和日志系统一样做到 100% 准确，下面也会讲一个相关的坑；</li>
+</ul>
+
+<p>放弃一点准确性得到的是更高的可靠性，这里的可靠性体现为架构简单、数据简单、运维简单。假如你维护过 ELK 或其它日志架构的话，就会发现相比于指标，日志系统想要稳定地跑下去需要付出几十倍的机器成本与人力成本。既然是权衡，那就没有好或不好，只有适合不适合，<strong>我推荐在应用 Prometheus 之初就要先考虑清楚这个问题，并且将这个权衡明确地告诉使用方。</strong></p>
+
+<h2 id="首先做好自监控">首先做好自监控<a href="#首先做好自监控" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>不知道你有没有考虑过一个问题，其它系统都用 Prometheus 监控起来了，报警规则也设置好了，那 Prometheus 本身由谁来监控？</p>
+
+<p>答案是&rdquo;另一个监控系统&rdquo;，而这个监控系统可以是另一个 Prometheus。按照官方的 quickstart 或 helm 部署的 Prometheus 单实例自己监控自己的，我们当然不能指望一个系统挂掉之后自己发现自己挂了。因此我强烈建议<strong>在上生产环境之前，一定要确保至少有两个独立的 Prometheus 实例互相做交叉监控。</strong>交叉监控的配置也很简单，每台 Prometheus 都拉取其余所有 Prometheus 的指标即可。</p>
+
+<p>还有一个点是警报系统(Alertmanager)，我们再考虑一下警报系统挂掉的情况：这时候 Prometheus 可以监控到警报系统挂了，但是因为警报挂掉了，所以警报自然就发不出来，这也是应用 Prometheus 之前必须搞定的问题。这个问题可以通过给警报系统做 HA 来应对。除此之外还有一个经典的兜底措施叫做 <a href="https://en.wikipedia.org/wiki/Dead_man%27s_switch">&ldquo;Dead man&rsquo;s switch&rdquo;</a>: 定义一条永远会触发的告警，不断通知，假如哪天这条通知停了，那么说明报警链路出问题了。</p>
+
+<h2 id="不要使用-nfs-做存储">不要使用 NFS 做存储<a href="#不要使用-nfs-做存储" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>如题，Prometheus 维护者也<a href="https://github.com/prometheus/prometheus/issues/3534">在 issue 中表示过不支持 NFS</a>。这点我们有血泪教训（我们曾经有一台 Prometheus 存储文件发生损坏丢失了历史数据）。</p>
+
+<h2 id="尽早干掉维度-cardinality-过高的指标">尽早干掉维度(Cardinality)过高的指标<a href="#尽早干掉维度-cardinality-过高的指标" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>根据我们的经验，Prometheus 里有 50% 以上的存储空间和 80% 以上的计算资源(CPU、内存)都是被那么两三个维度超高的指标用掉的。而且这类维度超高的指标由于数据量很大，稍微查得野一点就会 OOM 搞死 Prometheus 实例。</p>
+
+<p>首先要明确这类指标是对 Prometheus 的滥用，类似需求完全应该放到日志流或数仓里去算。但是指标的接入方关注的往往是业务上够不够方便，假如足够方便的话什么都可以往 label 里塞。这就需要我们防患于未然，一个有效的办法是<strong>用警报规则找出维度过高的坏指标，然后在 Scrape 配置里 Drop 掉导致维度过高的 label。</strong></p>
+
+<p>警报规则的例子：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="c"># 统计每个指标的时间序列数，超出 10000 的报警</span><span class="w">
+</span><span class="w"></span>count<span class="w"> </span>by<span class="w"> </span>(__name__)({__name__=~<span class="s2">&#34;.+&#34;</span>})<span class="w"> </span>&gt;<span class="w"> </span><span class="m">10000</span></code></pre></div>
+<p>&ldquo;坏指标&rdquo;报警出来之后，就可以用 <code>metric_relabel_config</code> 的 <code>drop</code> 操作删掉有问题的 label（比如 userId、email 这些一看就是问题户），这里的配置方式可以查阅文档</p>
+
+<p>对了，这条的关键词是<strong>尽早</strong>，最好就是部署完就搞上这条规则，否则等哪天 Prometheus 容量满了再去找业务方说要删 label，那业务方可能就要忍不住扇你了&hellip;&hellip;</p>
+
+<h2 id="rate-类函数-recording-rule-的坑">Rate 类函数 + Recording Rule 的坑<a href="#rate-类函数-recording-rule-的坑" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>可能你已经知道了 PromQL 里要先 <code>rate()</code> 再 <code>sum()</code>，不能 <code>sum()</code> 完再 <code>rate()</code>（不知道也没事，马上讲）。但当 <code>rate()</code> 已经同类型的函数如 <code>increase()</code> 和 recording rule 碰到一起时，可能就会不小心掉到坑里去。</p>
+
+<p>当时，我们已经有了一个维度很高的指标（只能继续维护了，因为没有<strong>尽早干掉</strong>），为了让大家查询得更快一点，我们设计了一个 Recording Rule，用 <code>sum()</code> 来去掉维度过高的 <code>bad_label</code>，得到一个新指标。那么只要不涉及到 <code>bad_label</code>，大家就可以用新指标进行查询，Recording Rule 如下：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">sum(old_metric)<span class="w"> </span>without<span class="w"> </span>(bad_label)</code></pre></div>
+<p>用了一段时候后，大家发现 <code>new_metric</code> 做 <code>rate()</code> 得到的 QPS 趋势图里经常有奇怪的尖峰，但 <code>old_metric</code> 就不会出现。这时我们恍然大悟：绕了个弯踩进了 <code>rate()</code> 的坑里。</p>
+
+<p>这背后与 <code>rate()</code> 的实现方式有关，<code>rate()</code> 在设计上假定对应的指标是一个 Counter，也就是只有 incr(增加) 和  reset(归0) 两种行为。而做了 <code>sum()</code> 或其他聚合之后，得到的就不再是一个 Counter 了，举个例子，比如 <code>sum()</code> 的计算对象中有一个归0了，那整体的和会<strong>下降</strong>，而不是归零，这会影响 <code>rate()</code> 中判断 reset(归0) 的逻辑，从而导致错误的结果。写 PromQL 时这个坑容易避免，但碰到 Recording Rule 就不那么容易了，因为不去看配置的话大家也想不到 <code>new_metric</code> 是怎么来的。</p>
+
+<p>要完全规避这个坑，可以遵守一个原则：<strong>Recording Rule 一步到位，直接算出需要的值，避免算出一个中间结果再拿去做聚合。</strong></p>
+
+<h2 id="警报和历史趋势图未必-match">警报和历史趋势图未必 Match<a href="#警报和历史趋势图未必-match" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>最近半年常常被问两个问题：</p>
+
+<ul>
+<li>我的历史趋势图看上去超过水位线了，警报<strong>为什么没报</strong>？</li>
+<li>我的历史趋势图看上去挺正常的，警报<strong>为什么报了</strong>？</li>
+</ul>
+
+<p>这其中有一个原因是：趋势图上每个采样点的采样时间和警报规则每次的计算时间不是严格一致的。当时间区间拉得比较大的时候，采样点非常稀疏，不如警报计算的间隔来得密集，这个现象尤为明显，比如时序图采样了 0秒，60秒，120秒三个点。而警报在15秒，30秒，45秒连续计算出了异常，那在图上就看不出来。另外，经过越多的聚合以及函数操作，不同时间点的数据差异会来得越明显，有时确实容易混淆。</p>
+
+<p>这个其实不是问题，碰到时将趋势图的采样间隔拉到最小，仔细比对一下，就能验证警报的准确性。而对于聚合很复杂的警报，可以先写一条 Recording Rule, 再针对 Recording Rule 产生的新指标来建警报。这种范式也能帮助我们更高效地去建分级警报（超过不同阈值对应不同的紧急程度）</p>
+
+<h2 id="alertmanager-的-group-interval-会影响-resolved-通知">Alertmanager 的 group_interval 会影响 resolved 通知<a href="#alertmanager-的-group-interval-会影响-resolved-通知" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Alertmanager 里有一个叫 group_interval 的配置，用于控制同一个 group 内的警报最快多久通知一次。这里有一个问题是 firing(激活) 和 resolved(已消除) 的警报通知是共享同一个 group 的。也就是说，假设我们的 group_interval 是默认的 5 分钟，那么一条警报激活十几秒后立马就消除了，它的消除通知会在报警通知的 5 分钟之后才到，因为在发完报警通知之后，这个 Group 需要等待 5 分钟的 group_interval 才能进行下一次通知。</p>
+
+<p>这个设计让&rdquo;警报消除就立马发送消除通知&rdquo;变得几乎不可能，因为假如把 group_interval 变得很小的话，警报通知就会过于频繁，而调大的话，就会拖累到消除通知。</p>
+
+<p>这个问题修改一点源码即可解决，不过无伤大雅，不修也完全没问题。</p>
+
+<h2 id="最后一条-不要忘记因何而来">最后一条：不要忘记因何而来<a href="#最后一条-不要忘记因何而来" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>最后一条撒点鸡汤：<strong>监控的核心目标还是护航业务稳定，保障业务的快速迭代，永远不要忘记因何而来</strong></p>
+
+<p>曾经有一端时间，我们追求&rdquo;监控的覆盖率&rdquo;，所有系统所有层面，一定要有指标，而且具体信息 label 分得越细越好，最后搞出几千个监控项，不仅搞得眼花缭乱还让 Prometheus 变慢了；</p>
+
+<p>还有一段时间，我们追求&rdquo;警报的覆盖率&rdquo;，事无巨细必有要有警报，人人有责全体收警报（有些警报会发送给几十个人）。最后当然你也能预想到了，告警风暴让大家都对警报疲劳了；</p>
+
+<p>这些事情乍看起来都是在努力工作，但其实一开始的方向就错了，监控的目标绝对不是为了达到 xxx 个指标，xxx 条警报规则，这些东西有什么意义？依我看，负责监控的开发就算不是 SRE 也要有 SRE 的心态和视野，不要为监控系统的功能或覆盖面负责（这样很可让导致开发在监控里堆砌功能和内容，变得越来越臃肿越来越不可靠），而要为整个业务的稳定性负责，同时站在稳定性的投入产出比角度去考虑每件事情的性质和意义，不要忘记我们因何而来。</p>
+
+<p>假如你有建议或想法，欢迎在评论区或通过邮件与我讨论，你也可以在 <a href="https://twitter.com/AyleiWu">Aylei Wu@Twitter</a> 或 <a href="https://www.linkedin.com/in/yelei-wu-0850a5141/">Yelei Wu@Linkedin</a> 上找到我。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/monitoring">monitoring</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3159 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-02-16 08:00</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#接受准确性与可靠性的权衡">接受准确性与可靠性的权衡</a></li>
+<li><a href="#首先做好自监控">首先做好自监控</a></li>
+<li><a href="#不要使用-nfs-做存储">不要使用 NFS 做存储</a></li>
+<li><a href="#尽早干掉维度-cardinality-过高的指标">尽早干掉维度(Cardinality)过高的指标</a></li>
+<li><a href="#rate-类函数-recording-rule-的坑">Rate 类函数 + Recording Rule 的坑</a></li>
+<li><a href="#警报和历史趋势图未必-match">警报和历史趋势图未必 Match</a></li>
+<li><a href="#alertmanager-的-group-interval-会影响-resolved-通知">Alertmanager 的 group_interval 会影响 resolved 通知</a></li>
+<li><a href="#最后一条-不要忘记因何而来">最后一条：不要忘记因何而来</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/configmap-hotreload/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Kubernetes Pod 中的 ConfigMap 配置更新</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/interview-experience/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>写在19年初的后端社招面试经历(两年经验): 蚂蚁 头条 PingCAP</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

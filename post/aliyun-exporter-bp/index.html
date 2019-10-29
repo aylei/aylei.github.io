@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="编写 Prometheus Exporter: 以阿里云 Exporter 为例">
+<meta itemprop="description" content="去年底我写了一个阿里云云监控的 Prometheus Exporter, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?">
+
+
+<meta itemprop="datePublished" content="2019-04-14T19:13:26&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="3715">
+
+
+
+<meta itemprop="keywords" content="monitoring," />
+<meta property="og:title" content="编写 Prometheus Exporter: 以阿里云 Exporter 为例" />
+<meta property="og:description" content="去年底我写了一个阿里云云监控的 Prometheus Exporter, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/aliyun-exporter-bp/" />
+<meta property="article:published_time" content="2019-04-14T19:13:26+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="编写 Prometheus Exporter: 以阿里云 Exporter 为例"/>
+<meta name="twitter:description" content="去年底我写了一个阿里云云监控的 Prometheus Exporter, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>编写 Prometheus Exporter: 以阿里云 Exporter 为例</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Apr 14, 2019</span></div>
+				<h1>编写 Prometheus Exporter: 以阿里云 Exporter 为例</h1>
+			</header>
+			<div class="content">
+				
+
+<p>去年底我写了一个阿里云云监控的 <a href="https://github.com/aylei/aliyun-exporter">Prometheus Exporter</a>, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?</p>
+
+<h1 id="何为-prometheus-exporter">何为 Prometheus Exporter?<a href="#何为-prometheus-exporter" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p><a href="https://prometheus.io/">Prometheus</a> 监控基于一个很简单的模型: 主动抓取目标的指标接口(HTTP 协议)获取监控指标, 再存储到本地或远端的时序数据库. Prometheus 对于指标接口有一套固定的<a href="https://prometheus.io/docs/instrumenting/exposition_formats/">格式要求</a>, 格式大致如下:</p>
+<div class="highlight"><pre class="chroma"># HELP http_requests_total The total number of HTTP requests.
+# TYPE http_requests_total counter
+http_requests_total{method=&#34;post&#34;,code=&#34;200&#34;} 1027
+http_requests_total{method=&#34;post&#34;,code=&#34;400&#34;}    3</pre></div>
+<p>对于自己写的代码, 我们当然可以使用 Prometheus 的 SDK 暴露出上述格式的指标. 但对于大量现有服务, 系统甚至硬件, 它们并不会暴露 Prometheus 格式的指标. 比如说:</p>
+
+<ul>
+<li>Linux 的很多指标信息以文件形式记录在 <code>/proc/</code> 下的各个目录中, 如 <code>/proc/meminfo</code> 里记录内存信息, <code>/proc/stat</code> 里记录 CPU 信息;</li>
+<li>Redis 的监控信息需要通过 <code>INFO</code> 命令获取;</li>
+<li>路由器等硬件的监控信息需要通过 `SNMP** 协议获取;</li>
+<li>&hellip;</li>
+</ul>
+
+<p>要监控这些目标, 我们有两个办法, 一是改动目标系统的代码, 让它<strong>主动</strong>暴露 Prometheus 格式的指标, 当然, 对于上述几个场景这种办法完全是不现实的. 这时候就只能采用第二种办法:</p>
+
+<ul>
+<li><strong>编写一个代理服务, 将其它监控信息转化为 Prometheus 格式的指标</strong></li>
+</ul>
+
+<p>这个代理服务的基本运作方式, 可以用下面这张图来表示:</p>
+
+<p><img src="/img/exporter/exporter.png" alt="exporter" /></p>
+
+<p>而这样的代理服务, 就称作 Prometheus Exporter, 对于上面那些常见的情形, 社区早就写好了成熟的 Exporter, 它们就是 <code>node_exporter</code>, <code>redis_exporter</code> 和 <code>snmp_exporter</code>.</p>
+
+<h1 id="为什么要写-exporter">为什么要写 Exporter?<a href="#为什么要写-exporter" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>嗯, 写 exporter 可以把监控信息接进 Prometheus, 那为什么非要接进 Prometheus 呢?</p>
+
+<p>我们不妨以阿里云云监控为例, 看看接进 Prometheus 的好处都有啥:</p>
+
+<p>阿里云免费提供了一部分云监控服务, 但云监控的免费功能其实很有限, 没办法支持这些痛点场景:</p>
+
+<ul>
+<li>Adhoc TopN 查询: 比如&rdquo;找到当前对公网带宽消耗最大的 10 台服务器&rdquo;;</li>
+<li>容量规划: 比如&rdquo;分析过去一个月某类型服务的资源用量&rdquo;;</li>
+<li>高级报警: 比如&rdquo;对比过去一周的指标值, 根据标准差进行报警&rdquo;;</li>
+<li>整合业务监控: 业务的监控信息存在于另一套监控系统中, 两套系统的看板, 警报都很难联动;</li>
+</ul>
+
+<p>幸好, 云监控提供了获取监控信息的 API, 那么我们很自然地就能想到: 只要写一个阿里云云监控的 Exporter, 不就能将阿里云的监控信息整合到 Prometheus 体系当中了吗?</p>
+
+<p>当然, Exporter 就是做这个的!</p>
+
+<p>集成到 Prometheus 监控之后, 借助 PromQL 强大的表达能力和 Alertmanager, Grafana 的强大生态, 我们不仅能实现所有监控信息的整合打通, 还能获得更丰富的报警选择和更强的看板能力. 下面就是一个对 RDS 进行 TopN 查询的例子:</p>
+
+<p><img src="/img/exporter/RDS.png" alt="" /></p>
+
+<p>这个动机对于其它类型的 Exporter 也都是适用的: 当一个系统本身暴露了监控信息, 却又无法接入 Prometheus, 我们就可以考虑写一个 exporter 把它接进来了.</p>
+
+<h1 id="写一个好用的-exporter">写一个好用的 Exporter<a href="#写一个好用的-exporter" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>类似 &ldquo;阿里云 Exporter&rdquo; 这种形式的 Exporter 是非常好写的, 逻辑就是一句话:</p>
+
+<ul>
+<li>写一个 Web 服务, 每当 Prometheus 请求我们这个服务问我们要指标的时候, 我们就请求云监控的 API 获得监控信息, 再转化为 Prometheus 的格式返回出去;</li>
+</ul>
+
+<p>但这样写完之后仅仅是&rdquo;能用&rdquo;, 要做到&rdquo;好用&rdquo;, 还有诸多考量.</p>
+
+<h2 id="从文档开始">从文档开始<a href="#从文档开始" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Prometheus 官方文档中 <a href="https://prometheus.io/docs/instrumenting/writing_exporters/">Writing Exporter</a> 这篇写得非常全面, 假如你要写 exporter 推荐先通读一遍, 限于篇幅, 这里只概括一下:</p>
+
+<ul>
+<li>做到开箱即用(默认配置就可以直接开始用)</li>
+<li>推荐使用 YAML 作为配置格式</li>
+<li>指标使用下划线命名</li>
+<li>为指标提供 HELP String (指标上的 <code># HELP</code> 注释, 事实上这点大部分 exporter 都没做好)</li>
+<li>为 Exporter 本身的运行状态提供指标</li>
+<li>可以提供一个落地页</li>
+</ul>
+
+<p>下面几节中, 也会有和官方文档重复的部分, 但会略去理论性的部分(官方文档已经说的很好了), 着重讲实践例子.</p>
+
+<h2 id="可配置化">可配置化<a href="#可配置化" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>官方文档里讲了 Exporter 需要开箱即用, 但其实这只是基本需求, 在开箱即用的基础上, 一个良好的 Exporter 需要做到高度可配置化. 这是因为大部分 Exporter 暴露的指标中, 真正会用到的大概只有 20%, 冗余的 80% 指标不仅会消耗不必要的资源还会拖累整体的性能. 对于一般的 Exporter 而言, BP 是默认只提供必要的指标, 并且提供 extra 和 filter 配置, 允许用户配置额外的指标抓取和禁用一部分的默认指标. 而对于阿里云 Exporter 而言, 由于阿里云有数十种类型的资源(RDS, ECS, SLB&hellip;), 因此我们无法推测用户到底希望抓哪些监控信息, 因此只能全部交给用户配置. 当然, 项目还是提供了包含 SLB, RDS, ECS 和 Redis 的默认配置文件, 尽力做到开箱即用.</p>
+
+<h2 id="info-指标">Info 指标<a href="#info-指标" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>针对指标标签(Label), 我们考虑两点: &ldquo;唯一性&rdquo; 和 &ldquo;可读性&rdquo;:</p>
+
+<p><strong>&ldquo;唯一性&rdquo;</strong>: 对于指标, 我们应当只提供有&rdquo;唯一性&rdquo; 的(Label), 比如说我们暴露出 &ldquo;ECS 的内存使用&rdquo; 这个指标. 这时, &ldquo;ECS ID&rdquo; 这个标签就可以唯一区分所有的指标. 这时我们假如再加入 &ldquo;IP&rdquo;, &ldquo;操作系统&rdquo;, &ldquo;名字&rdquo; 这样的标签并不会增加额外的区分度, 反而会在某些状况下造成一些问题. 比方说某台 ECS 的名字变了, 那么在 Prometheus 内部就会重新记录一个时间序列, 造成额外的开销和部分 PromQL 计算的问题, 比如下面的示意图:</p>
+<div class="highlight"><pre class="chroma">序列A {id=&#34;foo&#34;, name=&#34;旧名字&#34;} ..................
+序列B {id=&#34;foo&#34;, name=&#34;新名字&#34;}                   .................</pre></div>
+<p><strong>&ldquo;可读性&rdquo;</strong>: 上面的论断有一个例外, 那就是当标签涉及&rdquo;可读性&rdquo;时, 即使它不贡献额外的区分度, 也可以加上. 比如 &ldquo;IP&rdquo; 这样的标签, 假如我们只知道 ECS ID 而不知道 IP, 那么根本对不上号, 排查问题也会异常麻烦.</p>
+
+<p>可以看到, 唯一性和可读性之间其实有一些权衡, 那么有没有更好的办法呢?</p>
+
+<p>答案就是 Info 指标(Info Metric). 单独暴露一个指标, 用 label 来记录实例的&rdquo;额外信息&rdquo;, 比如:</p>
+<div class="highlight"><pre class="chroma">ecs_info{id=&#34;foo&#34;, name=&#34;DIO&#34;, os=&#34;linux&#34;, region=&#34;hangzhou&#34;, cpu=&#34;4&#34;, memory=&#34;16GB&#34;, ip=&#34;188.188.188.188&#34;} 1</pre></div>
+<p>这类指标的值习惯上永远为 1, 它们并记录实际的监控值, 仅仅记录 ecs 的一些额外信息. 而在使用的时候, 我们就可以通过 PromQL 的 &ldquo;Join&rdquo;(<code>group_left</code>) 语法将这些信息加入到最后的查询结果中:</p>
+<div class="highlight"><pre class="chroma"># 这条 PromQL 将 aliyun_meta_rds_info 中记录的描述和状态从添加到了 aliyun_acs_rds_dashboard_MemoryUsage 中
+aliyun_acs_rds_dashboard_MemoryUsage 
+    * on (instanceId) group_left(DBInstanceDescription,DBInstanceStatus) 
+    aliyun_meta_rds_info </pre></div>
+<p>阿里云 Exporter 就大量使用了 Info 指标这种模式来提供实例的详细信息, 最后的效果就是监控指标本身非常简单, 只需要一个 ID 标签, 而看板上的信息依然非常丰富:</p>
+
+<p><img src="/img/exporter/ECS-detail.png" alt="" /></p>
+
+<h2 id="记录-exporter-本身的信息">记录 Exporter 本身的信息<a href="#记录-exporter-本身的信息" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>任何时候元监控(或者说自监控)都是首要的, 我们不可能依赖一个不被监控的系统去做监控. 因此了解怎么监控 exporter 并在编写时考虑到这点尤为重要.</p>
+
+<p>首先, 所有的 Prometheus 抓取目标都有一个 <code>up</code> 指标用来表明这个抓取目标能否被成功抓取. 因此, <strong>假如 exporter 挂掉或无法正常工作了</strong>, 我们是可以从相应的 <code>up</code> 指标立刻知道并报警的.</p>
+
+<p>但 <code>up</code> 成立的条件仅仅是指标接口返回 200 并且内容可以被解析, 这个粒度太粗了. 假设我们用 exporter 监控了好几个不同的模块, 其中有几个模块的指标无法正常返回了, 这时候 <code>up</code> 就帮不上忙了.</p>
+
+<p>因此一个 BP 就是针对各个子模块, 甚至于各类指标, 记录细粒度的 <code>up</code> 信息, 比如阿里云 exporter 就选择了为每类指标都记录 <code>up</code> 信息:</p>
+<div class="highlight"><pre class="chroma">aliyun_acs_rds_dashboard_MemoryUsage{id=&#34;foo&#34;} 1233456
+aliyun_acs_rds_dashboard_MemoryUsage{id=&#34;bar&#34;} 3215123
+
+aliyun_acs_rds_dashboard_MemoryUsage_up 1</pre></div>
+<p>当 <code>aliyun_acs_rds_dashboard_MemoryUsage_up</code> 这个指标出现 0 的时候, 我们就能知道 aliyun rds 内存信息的抓取不正常, 需要报警出来人工介入处理了.</p>
+
+<p>另外, 阿里云的指标抓取 API 是有流控和每月配额的, 因此阿里云 exporter 里还记录了各种抓取请求的次数和响应时间的分布, 分别用于做用量的规划和基于响应时间的监控报警. 这也是&rdquo;监控 exporter&rdquo;本身的一个例子.</p>
+
+<h2 id="设计落地页">设计落地页<a href="#设计落地页" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>用过 <code>node_exporter</code> 的会知道, 当访问它的主页, 也就是根路径 <code>/</code> 时, 它会返回一个简单的页面, 这就是 exporter 的落地页(Landing Page).</p>
+
+<p>落地页什么都可以放, 我认为最有价值的是放文档和帮助信息(或者放对应的链接). 而文档中最有价值的莫过于对于每个指标项的说明, 没有人理解的指标没有任何价值.</p>
+
+<h2 id="可选-一键起监控">可选: 一键起监控<a href="#可选-一键起监控" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>这一点超出了 exporter 本身的范畴, 但确确实实是 exporter &ldquo;好用&rdquo; 的一个极大助力. exporter 本身是无法单独使用的, 而现实情况是 Prometheus, Grafana, Alertmanager 再对接 Slack, 钉钉啥的, 这一套假如需要从头搭建, 还是有一定的门槛(用 k8s 的话至少得看一下 helm chart 吧), 甚至于有些时候想搭建监控的是全栈(gan)工程师, 作为全公司的独苗, 很可能更多的精力需要花在跟进前端的新技术上(不我没有黑前端&hellip;). 这时候, 一个一键拉起整套监控系统的命令诱惑力是非常大的.</p>
+
+<p>要一键拉起整套监控栈, 首先 kubernetes 就不考虑了, 能无痛部署生产级 kubernetes 集群的大佬不会需要这样的命令. 这时候, 反倒凉透的 docker-compose 是一个很好的选择. 还是以阿里云 exporter 为例, 仓库提供的 docker-compose stack 里提供了 Prometheus, aliyun-exporter, Grafana(看板), Alertmanager(发警报), alertmanager-dingtalk-webhook(适配 alertmanager 的警报到钉钉机器人) 的一键部署并且警报规则和 Grafana 看板页一并配置完毕. 这么一来, 只要用户有一台装了 docker 的机器, 他就能在5分钟之内打开 Grafana 看到这些效果(还有钉钉警报&hellip;假如这位用户的服务器不太健康的话):</p>
+
+<p><img src="/img/exporter/stack.gif" alt="" /></p>
+
+<p>当然了, 想要稳固地部署这套架构, 还是需要多机做高可用或者直接扔到 k8s, swarm 这样的编排系统上. 但假如没有&rdquo;一键部署&rdquo;的存在, 很多对 Prometheus 生态不熟悉的开发者就会被拒之门外; 另外, 对于有经验的用户, &ldquo;一键部署&rdquo;也能帮助他们快速理解这个 exporter 的特性, 帮助他们判断是否需要启用这个组件.</p>
+
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>你可能已经看出来了, 这篇文章的本意是打广告(当然, 我已经非常努力地写了我所认为的&rdquo;干货&rdquo;!). <a href="https://github.com/aylei/aliyun-exporter">aliyun-exporter</a> 这个项目其实最开始只是我练习 Python 用的, 但在前几天碰到一位用户告诉我他们在生产中使用了这个项目, 这给了莫大的鼓舞, 正好我还没有在公开场合 Promote 过这个项目, 因此这周就捞一把, 希望项目本身或这些衍生出来的经验中有一样能帮到大家吧.</p>
+
+<p>都看到这了, 不如<a href="https://github.com/aylei/aliyun-exporter">点个 star</a>?</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/monitoring">monitoring</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>3715 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-04-14 11:13</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#何为-prometheus-exporter">何为 Prometheus Exporter?</a></li>
+<li><a href="#为什么要写-exporter">为什么要写 Exporter?</a></li>
+<li><a href="#写一个好用的-exporter">写一个好用的 Exporter</a>
+<ul>
+<li><a href="#从文档开始">从文档开始</a></li>
+<li><a href="#可配置化">可配置化</a></li>
+<li><a href="#info-指标">Info 指标</a></li>
+<li><a href="#记录-exporter-本身的信息">记录 Exporter 本身的信息</a></li>
+<li><a href="#设计落地页">设计落地页</a></li>
+<li><a href="#可选-一键起监控">可选: 一键起监控</a></li>
+</ul></li>
+<li><a href="#结语">结语</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/alertmanager/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>搞搞 Prometheus: Alertmanager</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/jsonnet-grafana/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Jsonnet 简明教程与应用</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

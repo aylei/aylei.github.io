@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Moments on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/moments/</link>
+    <description>Recent content in Moments on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Mon, 25 Feb 2019 14:02:03 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/moments/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Learning By Teaching</title>
+      <link>https://www.aleiwu.com/moments/learning-by-teaching/</link>
+      <pubDate>Mon, 25 Feb 2019 14:02:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/moments/learning-by-teaching/</guid>
+      <description>19年以来，坚持写了几篇自己能够看得过眼的博客，每一篇花出的时间和精力都远远超出预估。这其中的日常是： 明明自己非常清楚的概念，怎么写得那么拧</description>
+    </item>
+    
+    <item>
+      <title>我的 2019 年个人 OKR</title>
+      <link>https://www.aleiwu.com/moments/2019-okr/</link>
+      <pubDate>Wed, 20 Feb 2019 22:32:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/moments/2019-okr/</guid>
+      <description>O1: 成为 CloudNative 领域的技术专家 KR1: 主导的 CloudNative 相关开源项目 star 净增长超过 2000 KR2: 为 CloudNative 生态项目提交至少 8 个 PR, 其中 k8s 核心系列不少于 4 个 KR3: 在 CloudNative 相关 meetup 或 conference 上输出至少 1 场</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Kubectl 效率提升指北">
+<meta itemprop="description" content="写水文啦啦啦啦啦啦啦 kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同">
+
+
+<meta itemprop="datePublished" content="2019-03-31T16:15:33&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="2305">
+
+
+
+<meta itemprop="keywords" content="kubernetes," />
+<meta property="og:title" content="Kubectl 效率提升指北" />
+<meta property="og:description" content="写水文啦啦啦啦啦啦啦 kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/kubectl-guru/" />
+<meta property="article:published_time" content="2019-03-31T16:15:33+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Kubectl 效率提升指北"/>
+<meta name="twitter:description" content="写水文啦啦啦啦啦啦啦 kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Kubectl 效率提升指北</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Mar 31, 2019</span></div>
+				<h1>Kubectl 效率提升指北</h1>
+			</header>
+			<div class="content">
+				
+
+<blockquote>
+<p>写水文啦啦啦啦啦啦啦</p>
+</blockquote>
+
+<p>kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同时查看多个容器的日志, 自定义 <code>get</code> 的输出格式. 下面就讲一些 kubectl 的使用经验(具体操作大多以 <code>zsh</code> 和 <code>brew</code> 为例).</p>
+
+<h1 id="准备工作-rtfm-读文档">准备工作: RTFM (读文档!)<a href="#准备工作-rtfm-读文档" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>根据<a href="https://kubernetes.io/docs/reference/kubectl/cheatsheet/">官方速查表</a>配置好 kubectl 的<strong>自动补全</strong>:</p>
+
+<ul>
+<li><p>Bash</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="nb">echo</span> <span class="s2">&#34;source &lt;(kubectl completion bash)&#34;</span> &gt;&gt; ~/.bashrc</code></pre></div></li>
+
+<li><p>Zsh</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="nb">echo</span> <span class="s2">&#34;if [ </span><span class="nv">$commands</span><span class="s2">[kubectl] ]; then source &lt;(kubectl completion zsh); fi&#34;</span> &gt;&gt; ~/.zshrc</code></pre></div></li>
+</ul>
+
+<p>假如你对 kubectl 不太熟悉, 速查表里余下的内容能快速让你上手, 建议一读. 另外, github 上还有一份更全面的适合打印的速查表 <a href="https://github.com/dennyzhang/cheatsheet-kubernetes-A4/blob/master/cheatsheet-kubernetes-A4.pdf">cheatsheet-kubernetes-A4</a></p>
+
+<h1 id="0-别名">0.别名<a href="#0-别名" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>执行下面的命令:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">cat&gt;&gt;~/.zshrc<span class="s">&lt;&lt;EOF
+</span><span class="s">alias k=&#39;kubectl&#39;
+</span><span class="s">alias ka=&#39;kubectl apply --recursive -f&#39;
+</span><span class="s">alias kex=&#39;kubectl exec -i -t&#39;
+</span><span class="s">alias klo=&#39;kubectl logs -f&#39;
+</span><span class="s">alias kg=&#39;kubectl get&#39;
+</span><span class="s">alias kd=&#39;kubectl describe&#39;
+</span><span class="s">EOF</span></code></pre></div>
+<p>我习惯把 <code>kubectl</code> alias 成 <code>k</code>. 而剩下几个都是很固定的命令与参数组合. 后面还会讲到 kubectl plugin, 所有的命令都要以 kubectl 开头, 因此(<del>研究表明</del>)用 <code>k</code> 能大大保护我们使用 kubectl 时的键盘寿命.</p>
+
+<p>另外 Github 上有一个项目叫做<a href="https://github.com/ahmetb/kubectl-aliases">kubectl-aliases</a>, 能够自动生成一份巨长的 bash 别名列表. 不过我并没有使用, 因为足足有 800 多个别名, 摁 tab 自动补全的时候会卡.</p>
+
+<h1 id="1-kubectl-plugin-机制">1.kubectl plugin 机制<a href="#1-kubectl-plugin-机制" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>从 1.12 开始, kubectl 就支持从用户的 PATH 中通过<strong>名字</strong>自动发现插件: 所有名字为<code>kubectl-{pluginName}</code>格式的可执行文件都会被加载为 kubectgl 插件, 而调用方式就是 kubectl pluginName.</p>
+
+<p>举个例子, 我们有一个可执行文件叫 <code>kubectl-debug</code>, 那么就可以用 <code>kubectl debug</code> 来执行它, 在设置了别名之后只需要敲 <code>k debug</code> 就行了. 我习惯将所有 kubernetes 相关的命令行工具都重命名成 kubectl 插件的形式, 这有两个好处, 一是方便记忆, 二是假如那个工具本身没有自动补全的话, 可以复用 kubectl 的自动补全(比如 <code>--namespace</code>). 下面好多地方我们都会利用这个机制来组织命令.</p>
+
+<h1 id="2-context-和-namespace-切换">2.Context 和 Namespace 切换<a href="#2-context-和-namespace-切换" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>一直敲 <code>--context=xxx -n=xxx</code> 是很麻烦的事情, 而 kubectl 切换 context 和 namespace 又比较繁琐. 好在 <a href="https://github.com/ahmetb/kubectx">kubectx</a> 项目能很好地解决这个问题(结合 <a href="https://github.com/junegunn/fzf">fzf</a> 体验更棒)</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">brew install kubectx
+brew install fzf <span class="c1"># 辅助做 context 和 namespace 的模糊搜索</span></code></pre></div>
+<p>装完之后基本操作, 重命名成 kubectl 插件的格式:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">mv /usr/local/bin/kubectx /usr/local/bin/kubectl-ctx
+mv /usr/local/bin/kubens /usr/local/bin/kubectl-ns</code></pre></div>
+<p>示例:</p>
+
+<p><img src="/img/kubectl/kubectx.gif" alt="kubectx" /></p>
+
+<h1 id="3-tail-多个-pod-的日志">3.tail 多个 Pod 的日志<a href="#3-tail-多个-pod-的日志" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p><code>kubectl logs</code> 有一个限制是不能同时 tail 多个 pod 中容器的日志(可以同时查看多个, 但是此时无法使用 <code>-f</code> 选项来 tail). 这个需求很关键, 因为请求是负载均衡到网关和微服务上的, 要追踪特定的访问日志最方便的办法就是 tail 所有的网关再 grep. 比较好的解决方案是 <a href="https://github.com/wercker/stern">stern</a> 这个项目, 除了可以同时 tail 多个容器的日志之外, stern 还:</p>
+
+<ul>
+<li>允许使用正则表达式来选择需要 tail 的 PodName</li>
+<li>为不同 Pod 的日志展示不同的颜色</li>
+<li>tail 过程中假如有符合规则的新 Pod 被创建, 那么会自动添加到 tail 输出中</li>
+</ul>
+
+<p>可以说是非常方便了. 老样子, 还是加入到我们的 kubectl 插件中:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">brew install stern
+mv /usr/local/bin/stern /usr/local/bin/kubectl-tail
+<span class="c1"># tail 当前 namespace 所有 pod 中所有容器的日志</span>
+k tail .</code></pre></div>
+<p>示例:</p>
+
+<p><img src="/img/kubectl/tail.gif" alt="tail" /></p>
+
+<h1 id="4-使用-jid-和-jq">4.使用 jid 和 jq<a href="#4-使用-jid-和-jq" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">brew install jq
+brew install jid</code></pre></div>
+<p>这个跟 kubectl 放在一起其实不太合适, 因为 <a href="https://github.com/simeji/jid">jid</a> 和 <a href="https://github.com/stedolan/jq">jq</a> 适合所有要操作 json 的场景, 但假如你还经常用 <code>kubectl get pod -o yaml | grep xxx</code>, 那就可以考虑一下 jid + jq 了. 简单说, jq 是对 json 做过滤和转换的, 比如:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">kubectl get pod -o json <span class="p">|</span> jq <span class="s1">&#39;.items[].metadata.labels&#39;</span></code></pre></div>
+<p>这条命令就能提取出所有 pod 对象的 labels, 而 k8s 的对象都很复杂, 我自己是记不住具体的字段位置的, 这时就可以用 jid(<strong>j</strong>son <strong>i</strong>ncremental <strong>d</strong>igger) 来交互式地探索 json 对象的内容:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell"><span class="c1"># jid 交互式查询的管道输出是最后确定的 JsonPath, 我们直接拷贝到剪切板里给 jq 用</span>
+kubectl get pod -o json <span class="p">|</span> jid -q <span class="p">|</span> pbcopy</code></pre></div>
+<p>看动图, 基本上用 <code>tab</code> 就可以完成探索, 完成之后把对应的 jsonpath 贴到 jq 里即可(注意 <code>jid</code> 不支持 Array/Map 通配, 需要手动把 <code>[0]</code> 里的下标去掉):</p>
+
+<p><img src="/img/kubectl/jidjq.gif" alt="jq" /></p>
+
+<p>假如需要输出多个字段, 那可以反复用 jid 去把字段都找出来, 最后再 jq 里用逗号分隔字段.</p>
+
+<p>另外, <code>jq</code> 本身远比动图里展示得强大(它甚至是一个图灵完备的函数式编程语言), 你可以看看 jq 的 <a href="https://github.com/stedolan/jq/wiki/Cookbook">cookbook</a> 来体会一下(我只会搞搞基本的 json 转化, 假如真的像 cookbook 里那样去钻研一下的话下面两节估计都不需要了&hellip;)</p>
+
+<h1 id="5-使用-custom-columns">5.使用 Custom Columns<a href="#5-使用-custom-columns" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>jq 的默认输出格式是 json, 看起来不如 <code>kubectl get</code> 的表格格式那么清晰, 这时候可以用 <code>-r</code> 参数和 <code>@tsv</code> 操作符输出成表格格式, 比如下面这个查询所有 <code>deployment</code> 使用的 docker image 的指令:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ kg deploy -o json <span class="p">|</span> jq -r <span class="s1">&#39;.items[] | [.metadata.name, .spec.template.spec.containers[].image] | @tsv&#39;</span>
+aylei-master-discovery	pingcap/tidb-operator:latest
+aylei-master-monitor	prom/prometheus:v2.2.1	grafana/grafana:4.6.5
+qotm	datawire/qotm:1.3
+rss-site	nginx
+tiller-deploy	gcr.io/kubernetes-helm/tiller:v2.12.3</code></pre></div>
+<blockquote>
+<p>tips: API 对象的 shortname 可以用 <code>kubectl api-resources</code> 查看</p>
+</blockquote>
+
+<p>其实效果仍然一般. 还好, 对于大部分 <code>jq</code> 能实现的转化, <code>kubectl get</code> 命令的 <code>-o=custom-columns</code> 参数也能实现, 并且输出结果的对齐与表头更友好(同时可以不依赖 <code>jq</code>):</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ k get deploy -o<span class="o">=</span>custom-columns<span class="o">=</span>NAME:<span class="s1">&#39;.metadata.name&#39;</span>,IMAGES:<span class="s1">&#39;.spec.template.spec.containers[*].image&#39;</span>
+NAME                     IMAGES
+aylei-master-discovery   pingcap/tidb-operator:latest
+aylei-master-monitor     prom/prometheus:v2.2.1,grafana/grafana:4.6.5
+qotm                     datawire/qotm:1.3</code></pre></div>
+<blockquote>
+<p>虽然语法略有不同, 但 custom-columns 里的 jsonpath 仍然可以通过 jid 去探索式地获取</p>
+</blockquote>
+
+<p>(注意 <code>custom-columns</code> 中使用的 <a href="https://kubernetes.io/docs/reference/kubectl/jsonpath/">JSONPath 语法</a> 和 <code>jq</code> 是不同的, 通配 list 需要用 <code>[*]</code>)</p>
+
+<h1 id="6-定制自己的输出格式">6.定制自己的输出格式<a href="#6-定制自己的输出格式" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p><code>jq</code> 和 <code>custom-columns</code> 都有一个问题是命令太长了, 即使我们用 alias 这么一行巨长的命令也不好维护. 还好, <code>jq</code> 和 <code>custom-columns</code> 都支持从文件中选择查询, 考虑到 <code>custom-columns</code> 的输出效果比较好, 更适合作为默认输出(jq 我一般用来做 adhoc query), 因此我们可以在 <code>custom-columns</code> 的基础上再封装一下.</p>
+
+<p><code>kubectl get</code> 的 <code>-o=custom-columns-file=&lt;file&gt;</code> 这个参数可以选定一个文件来提供 <code>custom-columns</code> 的信息, 文件格式非常简单:</p>
+<div class="highlight"><pre class="chroma">NAME           IMAGE
+.metadata.name .spec.template.spec.containers[*].image</pre></div>
+<p>但要指定文件感觉还是很麻烦, 怎么办呢? 刚刚讲的 kubectl 插件机制就派上用场了, 我们可以实现一个插件来展示自定义的输出格式, 而编写方式嘛, Bash 就足够啦, 执行下面的命令直接写完:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">cat&gt;&gt;kubectl-ls<span class="s">&lt;&lt;EOF
+</span><span class="s">#!/bin/bash
+</span><span class="s">
+</span><span class="s"># see if we have custom-columns-file defined
+</span><span class="s">if [ ! -z &#34;$1&#34; ] &amp;&amp; [ -f $HOME/.kube/columns/$1 ];
+</span><span class="s">then
+</span><span class="s">    kubectl get -o=custom-columns-file=$HOME/.kube/columns/$1 $@
+</span><span class="s">else
+</span><span class="s">    kubectl get $@
+</span><span class="s">EOF</span></code></pre></div>
+<p>这个脚本的意思是假如某种资源存在对应的 <code>~/.kube/columns/{resourceKind}</code> 这个文件, 就使用这个文件作为 columns 的模板. 为了和 get 命令区分开来(插件不能和内置指令同名), 就用了 <code>ls</code> 这个名字. 接下来, 我们将刚刚创建的 <code>kubectl-ls</code> 文件安装到 PATH 中, 再创建一个针对 <code>deploy</code> 资源的模板文件:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">chmod a+x kubectl-ls
+mv kubectl-ls /usr/local/bin/kubectl-ls
+mkdir -p ~/.kube/columns
+cat&gt;&gt;~/.kube/columns/deploy<span class="s">&lt;&lt;EOF
+</span><span class="s">NAME           IMAGE
+</span><span class="s">.metadata.name .spec.template.spec.containers[*].image
+</span><span class="s">EOF</span></code></pre></div>
+<p>大功告成, 接下来, 我们的 <code>kubectl ls</code> 就能根据文件配置自动转换 kubectl 输出:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">$ k ls deploy
+NAME                     IMAGE
+aylei-master-discovery   pingcap/tidb-operator:latest
+aylei-master-monitor     prom/prometheus:v2.2.1,grafana/grafana:4.6.5
+qotm                     datawire/qotm:1.3
+rss-site                 nginx
+tiller-deploy            gcr.io/kubernetes-helm/tiller:v2.12.3
+tmp-shell                netdata/netdata</code></pre></div>
+<p>这个脚本对 CRD(Custom Definition Resources) 尤其有用, 很多 CRD 没有配置 <code>additionalPrintColumns</code> 属性, 导致 <code>kubectl get</code> 输出的内容就只有一个名字, 比如 Prometheus Operator 定义的 Prometheus 对象, 根本没有信息嘛:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">$ kg prometheus
+NAME   CREATED AT
+k8s    7d</code></pre></div>
+<p>其实定制一下我们就能看到更合理的输出:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">cat&gt;&gt;~/.kube/columns/prometheus<span class="s">&lt;&lt;EOF
+</span><span class="s">NAME          REPLICAS      VERSION      CPU                         MEMORY                         ALERTMANAGER
+</span><span class="s">metadata.name spec.replicas spec.version spec.resources.requests.cpu spec.resources.requests.memory spec.alerting.alertmanagers[*].name
+</span><span class="s">EOF</span></code></pre></div>
+<p>噔噔噔噔:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">$ k ls prometheus k8s
+NAME   REPLICAS   VERSION   CPU      MEMORY   ALERTMANAGER
+k8s    <span class="m">2</span>          v2.5.0    &lt;none&gt;   400Mi    alertmanager-main</code></pre></div>
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>OK(终于水完了&hellip;), 这些配置其实都带有很强的个人色彩, 我自己用着非常顺手, 但可能到大家那边就未必如此了. 因此这篇文章只能勉强算是抛砖引玉, 假如能有一两点帮助大家提升了效率, 那也就达到目的了.</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2305 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-03-31 08:15</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#准备工作-rtfm-读文档">准备工作: RTFM (读文档!)</a></li>
+<li><a href="#0-别名">0.别名</a></li>
+<li><a href="#1-kubectl-plugin-机制">1.kubectl plugin 机制</a></li>
+<li><a href="#2-context-和-namespace-切换">2.Context 和 Namespace 切换</a></li>
+<li><a href="#3-tail-多个-pod-的日志">3.tail 多个 Pod 的日志</a></li>
+<li><a href="#4-使用-jid-和-jq">4.使用 jid 和 jq</a></li>
+<li><a href="#5-使用-custom-columns">5.使用 Custom Columns</a></li>
+<li><a href="#6-定制自己的输出格式">6.定制自己的输出格式</a></li>
+<li><a href="#结语">结语</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/jsonnet-grafana/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Jsonnet 简明教程与应用</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/prometheus-operator/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>搞搞 Prometheus：Prometheus Operator</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

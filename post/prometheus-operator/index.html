@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="搞搞 Prometheus：Prometheus Operator">
+<meta itemprop="description" content="前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传">
+
+
+<meta itemprop="datePublished" content="2019-03-24T14:37:32&#43;08:00" />
+<meta itemprop="dateModified" content="2019-05-14T19:06:26&#43;08:00" />
+<meta itemprop="wordCount" content="4326">
+
+
+
+<meta itemprop="keywords" content="kubernetes,prometheus," />
+<meta property="og:title" content="搞搞 Prometheus：Prometheus Operator" />
+<meta property="og:description" content="前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/prometheus-operator/" />
+<meta property="article:published_time" content="2019-03-24T14:37:32+08:00" />
+<meta property="article:modified_time" content="2019-05-14T19:06:26+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="搞搞 Prometheus：Prometheus Operator"/>
+<meta name="twitter:description" content="前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>搞搞 Prometheus：Prometheus Operator</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Mar 24, 2019</span></div>
+				<h1>搞搞 Prometheus：Prometheus Operator</h1>
+			</header>
+			<div class="content">
+				
+
+<h1 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>我对 <a href="https://github.com/prometheus/prometheus">Prometheus</a> 是又爱又恨。</p>
+
+<ul>
+<li>一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传统中间件（比如 MySQL、Kafka、Redis、ES）也有社区提供的 Prometheus Exporter。我们已经可以去掉 k8s 这个定语，直接说 Prometheus 是开源监控方案的&rdquo;头号种子选手&rdquo;了；</li>
+<li>另一方面吧，都 2019 年了，一个基础设施领域的&rdquo;头号种子&rdquo;选手居然还不支持分布式、不支持数据导入/导出、甚至不支持通过 api 修改监控目标和报警规则，这是不是也挺匪夷所思的？</li>
+</ul>
+
+<p>不过 Prometheus 的维护者们也有充足的理由：Prometheus does one thing, and it does it well<a href="https://www.oreilly.com/library/view/prometheus-up/9781492034131/ch01.html">1</a>. 那其实也无可厚非，Prometheus 最核心的&rdquo;指标监控&rdquo;确实做得出色，只是当我们要考虑 scale、考虑 long-term storage、考虑平台化(sth. as a Service)的时候，自己就得做一些扩展与整合了。&rdquo;搞搞 Prometheus&rdquo;这个主题可能会针对这些方面做一些讨论，抛砖引玉（不过要是弃坑的话这就是第一篇也是最后一篇了ε=ε=ε=ε=┌(;￣▽￣)┘）。</p>
+
+<h1 id="prometheus-operator">Prometheus Operator<a href="#prometheus-operator" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>这篇文章的主角是 <a href="https://github.com/coreos/prometheus-operator">Prometheus Operator</a>，由于 Prometheus 本身没有提供管理配置的 API 接口（尤其是管理监控目标和管理警报规则），也没有提供好用的多实例管理手段，因此这一块往往要自己写一些代码或脚本。但假如你还没有写这些代码，那就可以先看一下 Prometheus Operator，它很好地解决了 Prometheus 不好管理的问题。</p>
+
+<blockquote>
+<p>什么是 Operator？Operator = Controller + CRD。假如你不了解什么是 Controller 和 CRD，可以看一个 Kubernetes 本身的例子：我们提交一个 <strong>Deployment 对象</strong>来声明<strong>期望状态</strong>，比如 3 个副本；而 Kubernetes 的 Controller 会不断地干活（跑控制循环）来达成<strong>期望状态</strong>，比如看到只有 2 个副本就创建一个，看到有 4 个副本了就删除一个。在这里，Deployment 是 Kubernetes 本身的 API 对象。那假如我们想自己设计一些 API 对象来完成需求呢？Kubernetes 本身提供了 CRD(<a href="https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/">Custom Resource Definition</a>)，允许我们定义新的 API 对象。但在定义完之后，Kubernetes 本身当然不可能知道这些 API 对象的<strong>期望状态</strong>该如何到达。这时，我们就要写对应的 <strong>Controller</strong> 去实现这个逻辑。而这种自定义 API 对象 + 自己写 Controller 去解决问题的模式，就是 <strong>Operator</strong> Pattern。</p>
+</blockquote>
+
+<h1 id="概览">概览<a href="#概览" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>假如你有一个测试用的 k8s 集群，可以直接按照<a href="https://github.com/coreos/prometheus-operator/tree/master/contrib/kube-prometheus#quickstart">这里</a>把 Prometheus Operator 以及基于 Operator 的一大坨对象全都部署上去，部署完之后就可以用 <code>kubectl get prometheus</code>, <code>kubectl get servicemonitor</code> 来摸索新增的 API 对象了(不部署也没关系，咱们纸上谈兵）。新的对象有四种：</p>
+
+<ul>
+<li>Alertmanager: 定义一个 Alertmanager 集群;</li>
+<li>ServiceMonitor: 定义一组 Pod 的指标应该如何采集;</li>
+<li>PrometheusRule: 定义一组 Prometheus 规则;</li>
+<li>Prometheus: 定义一个 Prometheus &ldquo;集群&rdquo;，同时定义这个集群要使用哪些 <code>ServiceMonitor</code> 和 <code>PrometheusRule</code>;</li>
+</ul>
+
+<p>看几个简化版的 yaml 定义就很清楚了：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">kind<span class="p">:</span><span class="w"> </span>Alertmanager<span class="w"> </span>➊<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>main<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>baseImage<span class="p">:</span><span class="w"> </span>quay.io/prometheus/alertmanager<span class="w">
+</span><span class="w">  </span>replicas<span class="p">:</span><span class="w"> </span><span class="m">3</span><span class="w"> </span>➋<span class="w">
+</span><span class="w">  </span>version<span class="p">:</span><span class="w"> </span>v0<span class="m">.16.0</span></code></pre></div>
+<ul>
+<li>➊ 一个 Alertmanager 对象</li>
+
+<li><p>➋ 定义该 Alertmanager 集群的节点数为 3</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">kind<span class="p">:</span><span class="w"> </span>Prometheus<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w"> </span><span class="c"># 略</span><span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w"></span>alerting<span class="p">:</span><span class="w">
+</span><span class="w"></span>alertmanagers<span class="p">:</span><span class="w">
+</span><span class="w"></span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>alertmanager-main<span class="w"> </span>➊<span class="w">
+</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>monitoring<span class="w">
+</span><span class="w">  </span>port<span class="p">:</span><span class="w"> </span>web<span class="w">
+</span><span class="w"></span>baseImage<span class="p">:</span><span class="w"> </span>quay.io/prometheus/prometheus<span class="w">
+</span><span class="w"></span>replicas<span class="p">:</span><span class="w"> </span><span class="m">2</span><span class="w"> </span>➋<span class="w">
+</span><span class="w"></span>ruleSelector<span class="p">:</span><span class="w"> </span>➌<span class="w">
+</span><span class="w"></span>matchLabels<span class="p">:</span><span class="w">
+</span><span class="w">  </span>prometheus<span class="p">:</span><span class="w"> </span>k8s<span class="w">
+</span><span class="w">  </span>role<span class="p">:</span><span class="w"> </span>alert-rules<span class="w">
+</span><span class="w"></span>serviceMonitorNamespaceSelector<span class="p">:</span><span class="w"> </span>{}<span class="w"> </span>➍<span class="w">
+</span><span class="w"></span>serviceMonitorSelector<span class="p">:</span><span class="w"> </span>➎<span class="w">
+</span><span class="w"></span>matchLabels<span class="p">:</span><span class="w">
+</span><span class="w">  </span>k8s-app<span class="p">:</span><span class="w"> </span>node-exporter<span class="w">
+</span><span class="w"></span>query<span class="p">:</span><span class="w"> 
+</span><span class="w"></span>maxConcurrency<span class="p">:</span><span class="w"> </span><span class="m">100</span><span class="w"> </span>➏<span class="w">
+</span><span class="w"></span>version<span class="p">:</span><span class="w"> </span>v2<span class="m">.5.0</span></code></pre></div></li>
+
+<li><p>➊ 定义该 Prometheus 对接的 Alertmanager 集群名字为 main, 在 monitoring 这个 namespace 中;</p></li>
+
+<li><p>➋ 定义该 Proemtheus &ldquo;集群&rdquo;有两个副本，说是集群，其实 Prometheus 自身不带集群功能，这里只是起两个完全一样的 Prometheus 来避免单点故障;</p></li>
+
+<li><p>➌ 定义这个 Prometheus 需要使用带有 <code>prometheus=k8s</code> 且 <code>role=alert-rules</code> 标签的 PrometheusRule;</p></li>
+
+<li><p>➍ 定义这些 Prometheus 在哪些 namespace 里寻找 ServiceMonitor，不声明则默认选择 Prometheus 对象本身所处的 Namespace;</p></li>
+
+<li><p>➎ 定义这个 Prometheus 需要使用带有 <code>k8s-app=node-exporter</code> 标签的 ServiceMonitor，不声明则会全部选中;</p></li>
+
+<li><p>➏ 定义 Prometheus 的最大并发查询数为 100，<a href="https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec">几乎所有配置</a>都可以通过 Prometheus 对象进行声明(包括很重要的 RemoteRead、RemoteWrite)，这里为了简洁就不全部列出了;</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">kind<span class="p">:</span><span class="w"> </span>ServiceMonitor<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w"></span>labels<span class="p">:</span><span class="w">
+</span><span class="w"></span>k8s-app<span class="p">:</span><span class="w"> </span>node-exporter<span class="w"> </span>➊<span class="w">
+</span><span class="w"></span>name<span class="p">:</span><span class="w"> </span>node-exporter<span class="w">
+</span><span class="w"></span>namespace<span class="p">:</span><span class="w"> </span>monitoring<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w"></span>selector<span class="p">:</span><span class="w">
+</span><span class="w"></span>matchLabels<span class="p">:</span><span class="w"> </span>➋<span class="w">
+</span><span class="w">  </span>app<span class="p">:</span><span class="w"> </span>node-exporter<span class="w"> 
+</span><span class="w">  </span>k8s-app<span class="p">:</span><span class="w"> </span>node-exporter<span class="w">
+</span><span class="w"></span>endpoints<span class="p">:</span><span class="w">
+</span><span class="w"></span>-<span class="w"> </span>bearerTokenFile<span class="p">:</span><span class="w"> </span>/var/run/secrets/kubernetes.io/serviceaccount/token<span class="w">
+</span><span class="w"></span>interval<span class="p">:</span><span class="w"> </span>30s<span class="w"> </span>➌<span class="w">
+</span><span class="w"></span>targetPort<span class="p">:</span><span class="w"> </span><span class="m">9100</span><span class="w"> </span>➍<span class="w">
+</span><span class="w"></span>scheme<span class="p">:</span><span class="w"> </span>https<span class="w">
+</span><span class="w"></span>jobLabel<span class="p">:</span><span class="w"> </span>k8s-app</code></pre></div></li>
+
+<li><p>➊ 这个 ServiceMonitor 对象带有 <code>k8s-app=node-exporter</code> 标签，因此会被上面的 Prometheus 选中;</p></li>
+
+<li><p>➋ 定义需要监控的 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.12/#endpoints-v1-core">Endpoints</a>，带有 <code>app=node-exporter</code> 且 <code>k8s-app=node-exporter</code>标签的 Endpoints 会被选中;</p></li>
+
+<li><p>➌ 定义这些 Endpoints 需要每 30 秒抓取一次;</p></li>
+
+<li><p>➍ 定义这些 Endpoints 的指标端口为 9100;</p></li>
+</ul>
+
+<blockquote>
+<p>Endpoints 对象是 Kubernetes 对一组地址以及它们的可访问端口的抽象，通常和 Service 一起出现。</p>
+</blockquote>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">kind<span class="p">:</span><span class="w"> </span>PrometheusRule<span class="w">
+</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
+</span><span class="w">  </span>labels<span class="p">:</span><span class="w"> </span>➊<span class="w">
+</span><span class="w">    </span>prometheus<span class="p">:</span><span class="w"> </span>k8s<span class="w">
+</span><span class="w">    </span>role<span class="p">:</span><span class="w"> </span>alert-rules<span class="w">
+</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>prometheus-k8s-rules<span class="w">
+</span><span class="w"></span>spec<span class="p">:</span><span class="w">
+</span><span class="w">  </span>groups<span class="p">:</span><span class="w">
+</span><span class="w">  </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>k8s.rules<span class="w">
+</span><span class="w">    </span>rules<span class="p">:</span><span class="w"> </span>➋<span class="w">
+</span><span class="w">    </span>-<span class="w"> </span>alert<span class="p">:</span><span class="w"> </span>KubeletDown<span class="w">
+</span><span class="w">      </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">        </span>message<span class="p">:</span><span class="w"> </span>Kubelet<span class="w"> </span>has<span class="w"> </span>disappeared<span class="w"> </span>from<span class="w"> </span>Prometheus<span class="w"> </span>target<span class="w"> </span>discovery.<span class="w">
+</span><span class="w">      </span>expr<span class="p">:</span><span class="w"> </span><span class="sd">|
+</span><span class="sd">        absent(up{job=&#34;kubelet&#34;} == 1)</span><span class="w">
+</span><span class="w">      </span>for<span class="p">:</span><span class="w"> </span>15m<span class="w">
+</span><span class="w">      </span>labels<span class="p">:</span><span class="w">
+</span><span class="w">        </span>severity<span class="p">:</span><span class="w"> </span>critical</code></pre></div>
+<ul>
+<li>➊ 定义该 PrometheusRule 的 label, 显然它会被上面定义的 Prometheus 选中;</li>
+<li>➋ 定义了一组规则，其中只有一条报警规则，用来报警 kubelet 是不是挂了;</li>
+</ul>
+
+<p>串在一起，它们的关系如下:</p>
+
+<p><img src="https://raw.githubusercontent.com/coreos/prometheus-operator/master/Documentation/custom-metrics-elements.png" alt="" /></p>
+
+<p>看完这四个真实的 yaml，你可能会觉得，这不就是把 Prometheus 的配置打散了，放到了 API 对象里吗？<strong>和我自己写 StatefulSet + ConfigMap 有什么区别呢？</strong></p>
+
+<p>确实，Prometheus 对象和 Alertmanager 对象就是对 StatefulSet 的封装：实际上在 Operator 的逻辑中，中还是生成了一个 StatefuleSet 交给 k8s 自身的 Controller 去处理了。对于 PrometheusRule 和 ServiceMonitor 对象，Operator 也只是把它们转化成了 Prometheus 的配置文件，并挂载到 Prometheus 实例当中而已。</p>
+
+<p>那么，Operator 的价值究竟在哪呢？</p>
+
+<h1 id="prometheus-operator-的好处都有啥">Prometheus Operator 的好处都有啥？<a href="#prometheus-operator-的好处都有啥" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>首先，这些 API 对象全都是用 CRD 定义好 Schema 的，<strong>api-server 会帮我们做校验</strong>。</p>
+
+<p>假如我们用 ConfigMap 来存配置，那就没有任何的校验。万一写错了（比如 yaml 缩进错误）：</p>
+
+<ul>
+<li>那么 Prometheus 做配置热更新的时候就会失败，假如配置更新失败没有报警，那么 Game Over;</li>
+<li>热更新失败有报警，但这时 Prometheus 突然重启了，于是配置错误重启失败，Game Over;</li>
+</ul>
+
+<p>而在 Prometheus Operator 中，所有在 Prometheus 对象、ServiceMonitor 对象、PrometheusRule 对象中的配置都是有 Schema 校验的，校验失败 apply 直接出错，这就大大降低了配置异常的风险。</p>
+
+<p>其次，Prometheus Operator 借助 k8s 把 Prometheus 服务平台化了，<strong>实现 Prometheus as a Service</strong>。</p>
+
+<p>在有了 Prometheus 和 Alertmanager 这样非常明确的 API 对象之后，用户就能够以 k8s 平台为底座，自助式地创建 Prometheus 服务或 Alertmanager 服务。这一点我们不妨退一步想，假如没有 Prometheus Operator，我们要怎么实现这个平台化呢？那无非就是给用户一个表单， 限定能填的字段，比如存储盘大小、CPU内存、Prometheus 版本，然后通过一段逻辑填充成一个 StatefuleSet 的 API 对象再创建到 k8s 上。没错，这些逻辑 Prometheus Operator 都帮我们做掉了，而且是用非常 Kubernetes 友好的方式做掉了，我们何必再造轮子呢？</p>
+
+<p>最后，也是最重要的，<code>ServiceMonitor</code> 和 <code>PrometheusRule</code> 这两个对象<strong>解决了 Prometheus 配置难维护这个痛点问题</strong>。</p>
+
+<p>要证明这点，我得先亮一段 Prometheus 配置：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml"><span class="w">      </span>-<span class="w"> </span>job_name<span class="p">:</span><span class="w"> </span><span class="s1">&#39;kubernetes-service-endpoints&#39;</span><span class="w">
+</span><span class="w">        </span>kubernetes_sd_configs<span class="p">:</span><span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>role<span class="p">:</span><span class="w"> </span>endpoints<span class="w">
+</span><span class="w">        </span>relabel_configs<span class="p">:</span><span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_service_annotation_prometheus_io_scrape<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>keep<span class="w">
+</span><span class="w">            </span>regex<span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_service_annotation_prometheus_io_scheme<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>__scheme__<span class="w">
+</span><span class="w">            </span>regex<span class="p">:</span><span class="w"> </span>(https<span class="p">?</span>)<span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_service_annotation_prometheus_io_path<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>__metrics_path__<span class="w">
+</span><span class="w">            </span>regex<span class="p">:</span><span class="w"> </span>(.+)<span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__address__<span class="p">,</span><span class="w"> </span>__meta_kubernetes_service_annotation_prometheus_io_port<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>__address__<span class="w">
+</span><span class="w">            </span>regex<span class="p">:</span><span class="w"> </span>(<span class="p">[</span>^<span class="p">:]</span>+)(<span class="p">?::</span>\d+)<span class="p">?</span>;(\d+)<span class="w">
+</span><span class="w">            </span>replacement<span class="p">:</span><span class="w"> </span>$<span class="m">1</span><span class="p">:</span>$<span class="m">2</span><span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>action<span class="p">:</span><span class="w"> </span>labelmap<span class="w">
+</span><span class="w">            </span>regex<span class="p">:</span><span class="w"> </span>__meta_kubernetes_service_label_(.+)<span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_namespace<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>kubernetes_namespace<span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_service_name<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>kubernetes_name<span class="w">
+</span><span class="w">          </span>-<span class="w"> </span>source_labels<span class="p">:</span><span class="w"> </span><span class="p">[</span>__meta_kubernetes_pod_node_name<span class="p">]</span><span class="w">
+</span><span class="w">            </span>action<span class="p">:</span><span class="w"> </span>replace<span class="w">
+</span><span class="w">            </span>target_label<span class="p">:</span><span class="w"> </span>kubernetes_node</code></pre></div>
+<p>通过 Prometheus 的 <a href="https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config">relabel_config</a> 文档可以知道，上面这段&rdquo;天书&rdquo;指定了:</p>
+
+<ul>
+<li>这个 Prometheus 要针对所有 annotation 中带有 <code>prometheus.io/scrape=true</code> 的 Endpoints 对象，按照 annotation 中的 <code>prometheus.io/port</code>,<code>prometheus.io/scheme</code>,<code>prometheus.io/path</code>来抓取它们的指标。</li>
+</ul>
+
+<p>Prometheus 平台化之后，势必会有不同业务线、不同领域的各种 Prometheus 监控实例，大家都只想抓自己感兴趣的指标，于是就需要改动这个配置来做文章，但这个配置在实际维护中有不少问题：</p>
+
+<ul>
+<li>复杂：复杂是万恶之源；</li>
+<li>没有分离关注点：应用开发者（提供 Pod 的人）必须知道 Prometheus 维护者的配置是怎么编写的，才能正确提供 annotation；</li>
+<li>没有 API：更新流程复杂，需要通过 CI 或 k8s ConfigMap 等手段把配置文件更新到 Pod 内再触发 webhook 热更新；</li>
+</ul>
+
+<p>而 <code>ServiceMonitor</code> 对象就很巧妙，它解耦了&rdquo;监控的需求&rdquo;和&rdquo;需求的实现方&rdquo;。我们通过前面的分析可以知道，<code>ServiceMonitor</code> 里只需要用 label-selector 这种简单又通用的方式声明一个 <strong>&ldquo;监控需求&rdquo;，也就是哪些 Endpoints 需要收集，怎么收集就行了</strong>。而这个需求本身则会被 Prometheus 按照 label 来选中并且满足。让用户只关心需求，这就是一个非常好的关注点分离。当然了，<code>ServiceMonitor</code> 最后还是会被 Operator 转化成上面那样复杂的 Scrape Config，但这个复杂度已经完全被 Operator 屏蔽掉了。</p>
+
+<p>另外，<code>ServiceMonitor</code> 还是一个字段明确的 API 对象，用 <code>kubectl</code> 就可以查看或更新它，在上面包一个 web-ui，让用户通过 ui 选择监控对象也是非常简单的事情。这么一来，很多&rdquo;内部监控系统&rdquo;的造轮子工程又可以简化不少。</p>
+
+<p><code>PrometheusRule</code> 对象也是同样的道理。再多想一点，基于 <code>PrometheusRule</code> 对象的 Rest API，我们可以很容易地开发一个 Grafana 插件来帮助应用开发者在 UI 上定义警报规则。这对于 devops 流程是非常重要的，我们可不想在一个团队中永远只能去找 SRE 添加警报规则。</p>
+
+<p>还有一点，这些新的 API 对象天生就能够复用 kubectl, RBAC, Validation, Admission Control, ListAndWatch API 这些 Kubernetes 开发生态里的东西，相比于脱离 Kubernetes 写一套 &ldquo;Prometheus 管理平台&rdquo;，这正是基于 Operator 模式基于 Kubernetes 进行扩展的优势所在。</p>
+
+<h1 id="结语">结语<a href="#结语" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h1>
+
+<p>其实大家可以看到，Prometheus Operator 干的事情其实就是平常我们用 CI 脚本、定时任务或者手工去干的事情，逻辑上很直接。它的成功在于借助 Operator 模式（拆开说就是控制循环+声明式API这两个 k8s 的典型设计模式）封装了大量的 Prometheus 运维经验，提供了友好的 Prometheus 管理接口，而这对于平台化是很重要的。另外，这个例子也可以说明，即使对 Prometheus 这样运维不算很复杂的系统，Operator 也能起到很好的效果。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span><span class="tag"><a href="https://www.aleiwu.com/tags/prometheus">prometheus</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>4326 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-03-24 06:37</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/f5b842d0518990176378bc1f84db2ef6cbd14e60" target="_blank" rel="noopener">f5b842d</a> @ 2019-05-14</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li><a href="#前言">前言</a></li>
+<li><a href="#prometheus-operator">Prometheus Operator</a></li>
+<li><a href="#概览">概览</a></li>
+<li><a href="#prometheus-operator-的好处都有啥">Prometheus Operator 的好处都有啥？</a></li>
+<li><a href="#结语">结语</a></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/kubectl-guru/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Kubectl 效率提升指北</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/tidb-opeartor-webhook/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Kubernetes 中如何保证优雅地停止 Pod</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

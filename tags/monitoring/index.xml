@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>monitoring on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/monitoring/</link>
+    <description>Recent content in monitoring on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Sun, 21 Apr 2019 21:55:47 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/monitoring/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>搞搞 Prometheus: Alertmanager</title>
+      <link>https://www.aleiwu.com/post/alertmanager/</link>
+      <pubDate>Sun, 21 Apr 2019 21:55:47 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/alertmanager/</guid>
+      <description>警报是监控系统中必不可少的一块, 当然了, 也是最难搞的一块. 我们乍一想, 警报似乎很简单一件事: 假如发生了异常情况, 发送或邮件/消息通知给某人或</description>
+    </item>
+    
+    <item>
+      <title>编写 Prometheus Exporter: 以阿里云 Exporter 为例</title>
+      <link>https://www.aleiwu.com/post/aliyun-exporter-bp/</link>
+      <pubDate>Sun, 14 Apr 2019 19:13:26 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/aliyun-exporter-bp/</guid>
+      <description>去年底我写了一个阿里云云监控的 Prometheus Exporter, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?</description>
+    </item>
+    
+    <item>
+      <title>Prometheus 不完全避坑指南</title>
+      <link>https://www.aleiwu.com/post/prometheus-bp/</link>
+      <pubDate>Sat, 16 Feb 2019 16:00:05 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-bp/</guid>
+      <description>Prometheus 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控</description>
+    </item>
+    
+    <item>
+      <title>云原生下的日志新玩法: Grafana loki 源码解析</title>
+      <link>https://www.aleiwu.com/post/grafana-loki/</link>
+      <pubDate>Fri, 14 Dec 2018 22:52:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/grafana-loki/</guid>
+      <description>注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时 Grafana loki 简介 在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &amp;ldquo;loki&amp;rdquo; 的新项目, 用于解决云原生架构下的日志收</description>
+    </item>
+    
+    <item>
+      <title>Linux Slab 导致的内存使用率误报警</title>
+      <link>https://www.aleiwu.com/post/linux-memory-monitring/</link>
+      <pubDate>Tue, 27 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/linux-memory-monitring/</guid>
+      <description>free 命令的输出 buff/cache 部分并不等同于 /proc/meminfo 中的 Buffer + Cached。警报规则中最常见的内存使用率计算方式也存在一些问题。 背景 最近在整理监控，碰到一位同事反馈</description>
+    </item>
+    
+  </channel>
+</rss>

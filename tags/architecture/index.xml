@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>architecture on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/architecture/</link>
+    <description>Recent content in architecture on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Wed, 06 Sep 2017 16:52:03 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>基于 Kafka 与 Debezium 构建实时数据管道</title>
+      <link>https://www.aleiwu.com/post/vimur.cn/</link>
+      <pubDate>Wed, 06 Sep 2017 16:52:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/vimur.cn/</guid>
+      <description>前言 这篇文章我最初是发表于公司技术部公众号, 原题&amp;rdquo;实时数据管道探索&amp;rdquo;, 公开后就搬运到了自己的博客上, 基本上算是对自己</description>
+    </item>
+    
+  </channel>
+</rss>

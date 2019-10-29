@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>container on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/container/</link>
+    <description>Recent content in container on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Wed, 06 Mar 2019 13:21:59 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/container/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>白话 Kubernetes Runtime</title>
+      <link>https://www.aleiwu.com/post/cncf-runtime-landscape/</link>
+      <pubDate>Wed, 06 Mar 2019 13:21:59 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/cncf-runtime-landscape/</guid>
+      <description>回想最开始接触 k8s 的时候, 经常搞不懂 CRI 和 OCI 的联系和区别, 也不知道为啥要垫那么多的 &amp;ldquo;shim&amp;rdquo;(尤其是 containerd-shim 和 dockershim 这两个完全没</description>
+    </item>
+    
+  </channel>
+</rss>

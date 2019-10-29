@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>prometheus on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/prometheus/</link>
+    <description>Recent content in prometheus on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Tue, 29 Oct 2019 13:27:12 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/prometheus/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>我的 Promtheus 到底啥时候报警？</title>
+      <link>https://www.aleiwu.com/post/prometheus-alert-why/</link>
+      <pubDate>Tue, 29 Oct 2019 13:27:12 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-alert-why/</guid>
+      <description>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始</description>
+    </item>
+    
+    <item>
+      <title>搞搞 Prometheus：Prometheus Operator</title>
+      <link>https://www.aleiwu.com/post/prometheus-operator/</link>
+      <pubDate>Sun, 24 Mar 2019 14:37:32 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-operator/</guid>
+      <description>前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传</description>
+    </item>
+    
+  </channel>
+</rss>

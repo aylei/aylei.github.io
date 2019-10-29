@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tidb on Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/tags/tidb/</link>
+    <description>Recent content in tidb on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Mon, 21 Oct 2019 16:41:00 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/tags/tidb/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>高效编排有状态应用 —— TiDB 的云原生实践与思考</title>
+      <link>https://www.aleiwu.com/post/qcon-tidb-operator/</link>
+      <pubDate>Mon, 21 Oct 2019 16:41:00 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/qcon-tidb-operator/</guid>
+      <description>本文为 2019 QCon 全球软件开发大会（上海） 专题演讲实录。 导语 云原生时代以降，无状态应用以其天生的可替换性率先成为各类编排系统的宠儿。以 Kubernetes 为代表的编排</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 中如何保证优雅地停止 Pod</title>
+      <link>https://www.aleiwu.com/post/tidb-opeartor-webhook/</link>
+      <pubDate>Sun, 17 Mar 2019 15:42:40 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/tidb-opeartor-webhook/</guid>
+      <description>一直以来我对优雅地停止 Pod 这件事理解得很单纯: 不就利用是 PreStop hook 做优雅退出吗? 但这周听了组里大哥的教诲之后，发现很多场景下 PreStop hook 并不能很好地完成需求</description>
+    </item>
+    
+  </channel>
+</rss>

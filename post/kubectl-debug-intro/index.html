@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="简化 Pod 故障诊断: kubectl-debug 介绍">
+<meta itemprop="description" content="背景 容器技术的一个最佳实践是构建尽可能精简的容器镜像。但这一实践却会给排查问题带来麻烦：精简后的容器中普遍缺失常用的排障工具，部分容器里甚至">
+
+
+<meta itemprop="dateModified" content="2019-07-27T12:19:47&#43;08:00" />
+<meta itemprop="wordCount" content="2459">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="简化 Pod 故障诊断: kubectl-debug 介绍" />
+<meta property="og:description" content="背景 容器技术的一个最佳实践是构建尽可能精简的容器镜像。但这一实践却会给排查问题带来麻烦：精简后的容器中普遍缺失常用的排障工具，部分容器里甚至" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/kubectl-debug-intro/" />
+<meta property="article:published_time" content="2019-07-27T12:19:07+08:00" />
+<meta property="article:modified_time" content="2019-07-27T12:19:47+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="简化 Pod 故障诊断: kubectl-debug 介绍"/>
+<meta name="twitter:description" content="背景 容器技术的一个最佳实践是构建尽可能精简的容器镜像。但这一实践却会给排查问题带来麻烦：精简后的容器中普遍缺失常用的排障工具，部分容器里甚至"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>简化 Pod 故障诊断: kubectl-debug 介绍</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Jul 27, 2019</span></div>
+				<h1>简化 Pod 故障诊断: kubectl-debug 介绍</h1>
+			</header>
+			<div class="content">
+				
+
+<h2 id="背景">背景<a href="#背景" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>容器技术的一个最佳实践是构建尽可能精简的容器镜像。但这一实践却会给排查问题带来麻烦：精简后的容器中普遍缺失常用的排障工具，部分容器里甚至没有 shell (比如 <code>FROM scratch</code> ）。
+在这种状况下，我们只能通过日志或者到宿主机上通过 docker-cli 或 nsenter 来排查问题，效率很低。Kubernetes 社区也早就意识到了这个问题，在 16 年就有相关的 Issue
+<a href="https://github.com/kubernetes/kubernetes/issues/27140">Support for troubleshooting distroless containers</a> 并形成了对应的 <a href="https://github.com/kubernetes/community/blob/master/contributors/design-proposals/node/troubleshoot-running-pods.md">Proposal</a>。 遗憾的是，由于改动的涉及面很广，相关的实现至今还没有合并到 Kubernetes 上游代码中。而在
+一个偶然的机会下（PingCAP 一面要求实现一个 kubectl 插件实现类似的功能），我开发了 <a href="https://github.com/aylei/kubectl-debug">kubectl-debug</a>: <strong>通过启动一个安装了各种排障工具的容器，来帮助诊断目标容器</strong> 。</p>
+
+<h2 id="工作原理">工作原理<a href="#工作原理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>我们先不着急进入 Quick Start 环节。 <code>kubectl-debug</code> 本身非常简单，因此只要理解了它的工作原理，你就能完全掌握这个工具，并且还能用它做 debug 之外的事情。</p>
+
+<p>我们知道，容器本质上是带有 cgroup 资源限制和 namespace 隔离的一组进程。因此，我们只要启动一个进程，并且让这个进程加入到目标容器的各种 namespace 中，这个进程就能
+&ldquo;进入容器内部&rdquo;（注意引号），与容器中的进程&rdquo;看到&rdquo;相同的根文件系统、虚拟网卡、进程空间了——这也正是 <code>docker exec</code> 和 <code>kubectl exec</code> 等命令的运行方式。</p>
+
+<p>现在的状况是，我们不仅要 &ldquo;进入容器内部&rdquo;，还希望带一套工具集进去帮忙排查问题。那么，想要高效管理一套工具集，又要可以跨平台，最好的办法就是把工具本身都打包在一个容器镜像当中。
+接下来，我们只需要通过这个&rdquo;工具镜像&rdquo;启动容器，再指定这个容器加入目标容器的的各种 namespace，自然就实现了 &ldquo;携带一套工具集进入容器内部&rdquo;。事实上，使用 docker-cli 就可以实现这个操作：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">export</span> <span class="nv">TARGET_ID</span><span class="o">=</span><span class="m">666666666</span>
+<span class="c1"># 加入目标容器的 network, pid 以及 ipc namespace</span>
+docker run -it --network<span class="o">=</span>container:<span class="nv">$TARGET_ID</span> --pid<span class="o">=</span>container:<span class="nv">$TARGET_ID</span> --ipc<span class="o">=</span>container:<span class="nv">$TARGET_ID</span> busybox</code></pre></div>
+<p>这就是 kubectl-debug 的出发点： <strong>用工具容器来诊断业务容器</strong> 。背后的设计思路和 sidecar 等模式是一致的：每个容器只做一件事情。</p>
+
+<p>具体到实现上，一条 <code>kubectl debug &lt;target-pod&gt;</code> 命令背后是这样的：</p>
+
+<figure>
+    <img src="/arch-2.jpg" width="800px"/> 
+</figure>
+
+
+<p>步骤分别是:</p>
+
+<ol>
+<li>插件查询 ApiServer：demo-pod 是否存在，所在节点是什么</li>
+<li>ApiServer 返回 demo-pod 所在所在节点</li>
+<li>插件请求在目标节点上创建 <code>Debug Agent</code> Pod</li>
+<li>Kubelet 创建 <code>Debug Agent</code> Pod</li>
+<li>插件发现 <code>Debug Agent</code> 已经 Ready，发起 debug 请求（长连接）</li>
+<li><code>Debug Agent</code> 收到 debug 请求，创建 Debug 容器并加入目标容器的各个 Namespace 中，创建完成后，与 Debug 容器的 tty 建立连接</li>
+</ol>
+
+<p>接下来，客户端就可以开始通过 5，6 这两个连接开始 debug 操作。操作结束后，Debug Agent 清理 Debug 容器，插件清理 Debug Agent，一次 Debug 完成。效果如下图：</p>
+
+<figure>
+    <img src="/kube-debug.gif" width="800px"/> 
+</figure>
+
+
+<h2 id="开始使用">开始使用<a href="#开始使用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Mac 可以直接使用 brew 安装:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">brew install aylei/tap/kubectl-debug</code></pre></div>
+<p>所有平台都可以通过下载 binary 安装:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">export</span> <span class="nv">PLUGIN_VERSION</span><span class="o">=</span><span class="m">0</span>.1.1
+<span class="c1"># linux x86_64</span>
+curl -Lo kubectl-debug.tar.gz https://github.com/aylei/kubectl-debug/releases/download/v<span class="si">${</span><span class="nv">PLUGIN_VERSION</span><span class="si">}</span>/kubectl-debug_<span class="si">${</span><span class="nv">PLUGIN_VERSION</span><span class="si">}</span>_linux_amd64.tar.gz
+<span class="c1"># macos</span>
+curl -Lo kubectl-debug.tar.gz https://github.com/aylei/kubectl-debug/releases/download/v<span class="si">${</span><span class="nv">PLUGIN_VERSION</span><span class="si">}</span>/kubectl-debug_<span class="si">${</span><span class="nv">PLUGIN_VERSION</span><span class="si">}</span>_darwin_amd64.tar.gz
+
+tar -zxvf kubectl-debug.tar.gz kubectl-debug
+sudo mv kubectl-debug /usr/local/bin/</code></pre></div>
+<p>Windows 用户可以在 <a href="https://github.com/aylei/kubectl-debug/releases/tag/v0.1.1">Release 页面</a> 进行下载。</p>
+
+<p>下载完之后就可以开始使用 debug 插件:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">kubectl debug target-pod --agentless --port-forward</code></pre></div>
+<blockquote>
+<p>kubectl 从 1.12 版本之后开始支持从 PATH 中自动发现插件。1.12 版本之前的 kubectl 不支持这种插件机制，但也可以通过命令名 <code>kubectl-debug</code> 直接调用。</p>
+</blockquote>
+
+<p>可以参考项目的 <a href="https://github.com/aylei/kubectl-debug/blob/master/docs/zh-cn.md">中文 README</a> 来获得更多文档和帮助信息。</p>
+
+<h2 id="典型案例">典型案例<a href="#典型案例" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<h3 id="基础排障">基础排障<a href="#基础排障" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>kubectl debug 默认使用 <a href="https://github.com/nicolaka/netshoot">nicolaka/netshoot</a> 作为默认的基础镜像，里面内置了相当多的排障工具，包括：</p>
+
+<p>使用 <strong>iftop</strong> 查看容器网络流量：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">➜  ~ kubectl debug demo-pod
+
+root @ /
+ <span class="o">[</span><span class="m">2</span><span class="o">]</span> 🐳  → iftop -i eth0
+interface: eth0
+IP address is: <span class="m">10</span>.233.111.78
+MAC address is: <span class="m">86</span>:c3:ae:9d:46:2b
+<span class="c1"># (图片略去)</span></code></pre></div>
+<p>使用 <strong>drill</strong> 诊断 DNS 解析：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">root @ /
+ <span class="o">[</span><span class="m">3</span><span class="o">]</span> 🐳  → drill -V <span class="m">5</span> demo-service
+<span class="p">;;</span> -&gt;&gt;HEADER<span class="s">&lt;&lt;- opcode: QUERY, rcode: NOERROR, id: 0
+</span><span class="s">;; flags: rd ; QUERY: 1, ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 0
+</span><span class="s">;; QUESTION SECTION:
+</span><span class="s">;; demo-service.	IN	A
+</span><span class="s">
+</span><span class="s">;; ANSWER SECTION:
+</span><span class="s">
+</span><span class="s">;; AUTHORITY SECTION:
+</span><span class="s">
+</span><span class="s">;; ADDITIONAL SECTION:
+</span><span class="s">
+</span><span class="s">;; Query time: 0 msec
+</span><span class="s">;; WHEN: Sat Jun  1 05:05:39 2019
+</span><span class="s">;; MSG SIZE  rcvd: 0
+</span><span class="s">;; -&gt;&gt;HEADER&lt;&lt;- opcode</span>: QUERY, rcode: NXDOMAIN, id: <span class="m">62711</span>
+<span class="p">;;</span> flags: qr rd ra <span class="p">;</span> QUERY: <span class="m">1</span>, ANSWER: <span class="m">0</span>, AUTHORITY: <span class="m">1</span>, ADDITIONAL: <span class="m">0</span>
+<span class="p">;;</span> QUESTION SECTION:
+<span class="p">;;</span> demo-service.	IN	A
+
+<span class="p">;;</span> ANSWER SECTION:
+
+<span class="p">;;</span> AUTHORITY SECTION:
+.	<span class="m">30</span>	IN	SOA	a.root-servers.net. nstld.verisign-grs.com. <span class="m">2019053101</span> <span class="m">1800</span> <span class="m">900</span> <span class="m">604800</span> <span class="m">86400</span>
+
+<span class="p">;;</span> ADDITIONAL SECTION:
+
+<span class="p">;;</span> Query time: <span class="m">58</span> msec
+<span class="p">;;</span> SERVER: <span class="m">10</span>.233.0.10
+<span class="p">;;</span> WHEN: Sat Jun  <span class="m">1</span> <span class="m">05</span>:05:39 <span class="m">2019</span>
+<span class="p">;;</span> MSG SIZE  rcvd: <span class="m">121</span></code></pre></div>
+<p>使用 <strong>tcpdump</strong> 抓包：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">root @ /
+ <span class="o">[</span><span class="m">4</span><span class="o">]</span> 🐳  → tcpdump -i eth0 -c <span class="m">1</span> -Xvv
+tcpdump: listening on eth0, link-type EN10MB <span class="o">(</span>Ethernet<span class="o">)</span>, capture size <span class="m">262144</span> bytes
+<span class="m">12</span>:41:49.707470 IP <span class="o">(</span>tos 0x0, ttl <span class="m">64</span>, id <span class="m">55201</span>, offset <span class="m">0</span>, flags <span class="o">[</span>DF<span class="o">]</span>, proto TCP <span class="o">(</span><span class="m">6</span><span class="o">)</span>, length <span class="m">80</span><span class="o">)</span>
+    demo-pod.default.svc.cluster.local.35054 &gt; <span class="m">10</span>-233-111-117.demo-service.default.svc.cluster.local.8080: Flags <span class="o">[</span>P.<span class="o">]</span>, cksum 0xf4d7 <span class="o">(</span>incorrect -&gt; 0x9307<span class="o">)</span>, seq <span class="m">1374029960</span>:1374029988, ack <span class="m">1354056341</span>, win <span class="m">1424</span>, options <span class="o">[</span>nop,nop,TS val <span class="m">2871874271</span> ecr <span class="m">2871873473</span><span class="o">]</span>, length <span class="m">28</span>
+  0x0000:  <span class="m">4500</span> <span class="m">0050</span> d7a1 <span class="m">4000</span> <span class="m">4006</span> 6e71 0ae9 6f4e  E..P..@.@.nq..oN
+  0x0010:  0ae9 6f75 88ee 094b 51e6 <span class="m">0888</span> 50b5 <span class="m">4295</span>  ..ou...KQ...P.B.
+  0x0020:  <span class="m">8018</span> <span class="m">0590</span> f4d7 <span class="m">0000</span> <span class="m">0101</span> 080a ab2d 52df  .............-R.
+  0x0030:  ab2d 4fc1 <span class="m">0000</span> <span class="m">1300</span> <span class="m">0000</span> <span class="m">0000</span> <span class="m">0100</span> <span class="m">0000</span>  .-O.............
+  0x0040:  000e 0a0a 08a1 86b2 ebe2 ced1 f85c <span class="m">1001</span>  .............<span class="se">\.</span>.
+<span class="m">1</span> packet captured
+<span class="m">11</span> packets received by filter
+<span class="m">0</span> packets dropped by kernel</code></pre></div>
+<p>访问目标容器的根文件系统：</p>
+
+<p>容器技术(如 Docker）利用了 <code>/proc</code> 文件系统提供的 <code>/proc/{pid}/root/</code> 目录实现了为隔离后的容器进程提供单独的根文件系统（root filesystem）的能力（就是 <code>chroot</code> 一下）。当我们想要访问
+目标容器的根文件系统时，可以直接访问这个目录：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">root @ /
+ <span class="o">[</span><span class="m">5</span><span class="o">]</span> 🐳  → tail -f /proc/1/root/log_
+Hello, world!</code></pre></div>
+<p>这里有一个常见的问题是 <code>free</code> <code>top</code> 等依赖 <code>/proc</code> 文件系统的命令会展示宿主机的信息，这也是容器化过程中开发者需要适应的一点（当然了，各种 runtime 也要去适应，比如臭名昭著的
+<a href="https://blog.softwaremill.com/docker-support-in-new-java-8-finally-fd595df0ca54">Java 8u121 以及更早的版本不识别 cgroups 限制</a> 问题就属此列）。</p>
+
+<h3 id="诊断-crashloopbackoff">诊断 CrashLoopBackoff<a href="#诊断-crashloopbackoff" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+
+<p>排查 <code>CrashLoopBackoff</code> 是一个很麻烦的问题，Pod 可能会不断重启， <code>kubectl exec</code> 和 <code>kubectl debug</code> 都没法稳定进行排查问题，基本上只能寄希望于 Pod 的日志中打印出了有用的信息。
+为了让针对 <code>CrashLoopBackoff</code> 的排查更方便， <code>kubectl-debug</code> 参考 <code>oc debug</code> 命令，添加了一个 <code>--fork</code> 参数。当指定 <code>--fork</code> 时，插件会复制当前的 Pod Spec，做一些小修改，
+再创建一个新 Pod：</p>
+
+<ul>
+<li>新 Pod 的所有 Labels 会被删掉，避免 Service 将流量导到 fork 出的 Pod 上</li>
+<li>新 Pod 的 <code>ReadinessProbe</code> 和 <code>LivnessProbe</code> 也会被移除，避免 kubelet 杀死 Pod</li>
+<li>新 Pod 中目标容器（待排障的容器）的启动命令会被改写，避免新 Pod 继续 Crash</li>
+</ul>
+
+<p>接下来，我们就可以在新 Pod 中尝试复现旧 Pod 中导致 Crash 的问题。为了保证操作的一致性，可以先 <code>chroot</code> 到目标容器的根文件系统中：</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">➜  ~ kubectl debug demo-pod --fork
+
+root @ /
+ <span class="o">[</span><span class="m">4</span><span class="o">]</span> 🐳  → chroot /proc/1/root
+
+root @ /
+ <span class="o">[</span><span class="c1">#] 🐳  → ls</span>
+ bin            entrypoint.sh  home           lib64          mnt            root           sbin           sys            tmp            var
+ dev            etc            lib            media          proc           run            srv            usr
+
+root @ /
+ <span class="o">[</span><span class="c1">#] 🐳  → ./entrypoint.sh</span>
+ <span class="c1"># 观察执行启动脚本时的信息并根据信息进一步排障</span></code></pre></div>
+<h2 id="结尾的碎碎念">结尾的碎碎念<a href="#结尾的碎碎念" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><code>kubectl-debug</code> 一开始只是 PingCAP 在面试时出的 homework，第一版完成在去年年底。当时整个项目还非常粗糙，不仅文档缺失，很多功能也都有问题：</p>
+
+<ul>
+<li>不支持诊断 CrashLoopBackoff 中的 Pod</li>
+<li>强制要求预先安装一个 Debug Agent 的 DaemonSet</li>
+<li>不支持公有云（节点没有公网 IP 或公网 IP 因为防火墙原因无法访问时，就无法 debug）</li>
+<li>没有权限限制，安全风险很大</li>
+</ul>
+
+<p>而让我非常兴奋的是，在我无暇打理项目的情况下，隔一两周就会收到 Pull Request 的通知邮件，一直到今天，大部分影响基础使用体验的问题都已经被解决，
+<code>kubectl-debug</code> 也发布了 4 个版本（ <code>0.0.1</code>, <code>0.0.2</code>, <code>0.1.0</code>, <code>0.1.1</code> )。尤其要感谢 <a href="https://github.com/tkanng">@tkanng</a> , TA 在第一个 PR 时还表示之前没有写过 Go，
+而在 <code>0.1.1</code> 版本中已经是这个版本绝大部分 feature 的贡献者，解决了好几个持续很久的 issue，感谢！</p>
+
+<p>最后再上一下项目地址： <a href="https://github.com/aylei/kubectl-debug">https://github.com/aylei/kubectl-debug</a></p>
+
+<p>假如在使用上或者对项目本身有任何问题，欢迎提交 issue，也可以在 <a href="https://www.aleiwu.com/post/kubectl-debug-intro/#结尾的碎碎念">文章评论区</a> 或 <a href="mailto:rayingecho@gmail.com">我的邮箱</a> 留言讨论。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2459 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-07-27 04:19</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/56bcec91afe526f2643dbeee41f1ed39f6e31054" target="_blank" rel="noopener">56bcec9</a> @ 2019-07-27</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#背景">背景</a></li>
+<li><a href="#工作原理">工作原理</a></li>
+<li><a href="#开始使用">开始使用</a></li>
+<li><a href="#典型案例">典型案例</a>
+<ul>
+<li><a href="#基础排障">基础排障</a></li>
+<li><a href="#诊断-crashloopbackoff">诊断 CrashLoopBackoff</a></li>
+</ul></li>
+<li><a href="#结尾的碎碎念">结尾的碎碎念</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://www.aleiwu.com/post/kubecon-shanghai-2019/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>KubeCon 2019 上海 CRD 相关 Session 小记</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>

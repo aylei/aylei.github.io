@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Aylei&#39;s Blog</title>
+    <link>https://www.aleiwu.com/</link>
+    <description>Recent content on Aylei&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Tue, 29 Oct 2019 13:27:12 +0800</lastBuildDate>
+    
+	<atom:link href="https://www.aleiwu.com/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>简化 Pod 故障诊断: kubectl-debug 介绍</title>
+      <link>https://www.aleiwu.com/post/kubectl-debug-intro/</link>
+      <pubDate>Sat, 27 Jul 2019 12:19:07 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/kubectl-debug-intro/</guid>
+      <description>背景 容器技术的一个最佳实践是构建尽可能精简的容器镜像。但这一实践却会给排查问题带来麻烦：精简后的容器中普遍缺失常用的排障工具，部分容器里甚至</description>
+    </item>
+    
+    <item>
+      <title>KubeCon 2019 上海 CRD 相关 Session 小记</title>
+      <link>https://www.aleiwu.com/post/kubecon-shanghai-2019/</link>
+      <pubDate>Sat, 27 Jul 2019 12:19:24 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/kubecon-shanghai-2019/</guid>
+      <description>这周借着参加 KubeCon 之名跑到会场划了三天水，最后一天良心发现顿觉需要记录一下，同时也顺带再消化一遍，遂有此文。 整个三天里除了 keynote 之外跑去听得最多的就</description>
+    </item>
+    
+    <item>
+      <title>文稿分享记录：TiDB Operator 设计与实现</title>
+      <link>https://www.aleiwu.com/post/tidb-operator-design/</link>
+      <pubDate>Sat, 27 Jul 2019 12:19:11 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/tidb-operator-design/</guid>
+      <description>文章整理自在 DockOne 社区进行的一次文稿分享，由于临到开始前才知道分享形式是纯文稿的，所以只列了一下提纲，现场的文字会比较口语化，当然这也原汁原味还</description>
+    </item>
+    
+    <item>
+      <title>高效编排有状态应用 —— TiDB 的云原生实践与思考</title>
+      <link>https://www.aleiwu.com/post/qcon-tidb-operator/</link>
+      <pubDate>Mon, 21 Oct 2019 16:41:00 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/qcon-tidb-operator/</guid>
+      <description>本文为 2019 QCon 全球软件开发大会（上海） 专题演讲实录。 导语 云原生时代以降，无状态应用以其天生的可替换性率先成为各类编排系统的宠儿。以 Kubernetes 为代表的编排</description>
+    </item>
+    
+    <item>
+      <title>我的 Promtheus 到底啥时候报警？</title>
+      <link>https://www.aleiwu.com/post/prometheus-alert-why/</link>
+      <pubDate>Tue, 29 Oct 2019 13:27:12 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-alert-why/</guid>
+      <description>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 中的 ConfigMap 配置更新(续)</title>
+      <link>https://www.aleiwu.com/post/configmap-rollout-followup/</link>
+      <pubDate>Wed, 15 May 2019 21:03:16 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/configmap-rollout-followup/</guid>
+      <description>之前的文章 Kubernetes Pod 中的 ConfigMap 更新 中，我总结了三种 ConfigMap 或 Secret 的更新方法: 通过 Kubelet 的周期性 Remount 做热更新，通过修改对象中的 PodTemplate 触发滚动更新，以及通过自定义 Controller 监听 ConfigMap 触</description>
+    </item>
+    
+    <item>
+      <title>搞搞 Prometheus: Alertmanager</title>
+      <link>https://www.aleiwu.com/post/alertmanager/</link>
+      <pubDate>Sun, 21 Apr 2019 21:55:47 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/alertmanager/</guid>
+      <description>警报是监控系统中必不可少的一块, 当然了, 也是最难搞的一块. 我们乍一想, 警报似乎很简单一件事: 假如发生了异常情况, 发送或邮件/消息通知给某人或</description>
+    </item>
+    
+    <item>
+      <title>编写 Prometheus Exporter: 以阿里云 Exporter 为例</title>
+      <link>https://www.aleiwu.com/post/aliyun-exporter-bp/</link>
+      <pubDate>Sun, 14 Apr 2019 19:13:26 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/aliyun-exporter-bp/</guid>
+      <description>去年底我写了一个阿里云云监控的 Prometheus Exporter, 后续迭代的过程中有一些经验总结, 这篇文章就将它们串联起来做一个汇总, 讲讲为什么要写 Exporter 以及怎么写一个好用的 Exporter?</description>
+    </item>
+    
+    <item>
+      <title>Jsonnet 简明教程与应用</title>
+      <link>https://www.aleiwu.com/post/jsonnet-grafana/</link>
+      <pubDate>Sun, 07 Apr 2019 13:48:47 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/jsonnet-grafana/</guid>
+      <description>Jsonnet 的功能用主流语言也能很快实现, 因此我一直都不关注这门语言. 直到最近做 Grafana 声明式看板的时候才重新审视了一遍这门语言, 认识到 Jsonnet 其实在&amp;rdquo</description>
+    </item>
+    
+    <item>
+      <title>Kubectl 效率提升指北</title>
+      <link>https://www.aleiwu.com/post/kubectl-guru/</link>
+      <pubDate>Sun, 31 Mar 2019 16:15:33 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/kubectl-guru/</guid>
+      <description>写水文啦啦啦啦啦啦啦 kubectl 可能是 Kubernetes(k8s) 最好用的用户接口, 但各种工具都得自己打磨打磨才能用得顺手, kubectl 也不例外. 日常使用起来仍然有比较繁琐的地方, 比如同</description>
+    </item>
+    
+    <item>
+      <title>搞搞 Prometheus：Prometheus Operator</title>
+      <link>https://www.aleiwu.com/post/prometheus-operator/</link>
+      <pubDate>Sun, 24 Mar 2019 14:37:32 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-operator/</guid>
+      <description>前言 我对 Prometheus 是又爱又恨。 一方面吧，它生态特别好：作为 Kubernetes 监控的事实标准，（几乎）所有 k8s 相关组件都暴露了 Prometheus 的指标接口，甚至在 k8s 生态之外，绝大部分传</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes 中如何保证优雅地停止 Pod</title>
+      <link>https://www.aleiwu.com/post/tidb-opeartor-webhook/</link>
+      <pubDate>Sun, 17 Mar 2019 15:42:40 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/tidb-opeartor-webhook/</guid>
+      <description>一直以来我对优雅地停止 Pod 这件事理解得很单纯: 不就利用是 PreStop hook 做优雅退出吗? 但这周听了组里大哥的教诲之后，发现很多场景下 PreStop hook 并不能很好地完成需求</description>
+    </item>
+    
+    <item>
+      <title>白话 Kubernetes Runtime</title>
+      <link>https://www.aleiwu.com/post/cncf-runtime-landscape/</link>
+      <pubDate>Wed, 06 Mar 2019 13:21:59 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/cncf-runtime-landscape/</guid>
+      <description>回想最开始接触 k8s 的时候, 经常搞不懂 CRI 和 OCI 的联系和区别, 也不知道为啥要垫那么多的 &amp;ldquo;shim&amp;rdquo;(尤其是 containerd-shim 和 dockershim 这两个完全没</description>
+    </item>
+    
+    <item>
+      <title>Learning By Teaching</title>
+      <link>https://www.aleiwu.com/moments/learning-by-teaching/</link>
+      <pubDate>Mon, 25 Feb 2019 14:02:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/moments/learning-by-teaching/</guid>
+      <description>19年以来，坚持写了几篇自己能够看得过眼的博客，每一篇花出的时间和精力都远远超出预估。这其中的日常是： 明明自己非常清楚的概念，怎么写得那么拧</description>
+    </item>
+    
+    <item>
+      <title>Kubernetes Pod 中的 ConfigMap 配置更新</title>
+      <link>https://www.aleiwu.com/post/configmap-hotreload/</link>
+      <pubDate>Sun, 24 Feb 2019 20:04:16 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/configmap-hotreload/</guid>
+      <description>业务场景里经常会碰到配置更新的问题，在 &amp;ldquo;GitOps&amp;ldquo;模式下，Kubernetes 的 ConfigMap 或 Secret 是非常好的配置管理机制。但</description>
+    </item>
+    
+    <item>
+      <title>我的 2019 年个人 OKR</title>
+      <link>https://www.aleiwu.com/moments/2019-okr/</link>
+      <pubDate>Wed, 20 Feb 2019 22:32:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/moments/2019-okr/</guid>
+      <description>O1: 成为 CloudNative 领域的技术专家 KR1: 主导的 CloudNative 相关开源项目 star 净增长超过 2000 KR2: 为 CloudNative 生态项目提交至少 8 个 PR, 其中 k8s 核心系列不少于 4 个 KR3: 在 CloudNative 相关 meetup 或 conference 上输出至少 1 场</description>
+    </item>
+    
+    <item>
+      <title>Prometheus 不完全避坑指南</title>
+      <link>https://www.aleiwu.com/post/prometheus-bp/</link>
+      <pubDate>Sat, 16 Feb 2019 16:00:05 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/prometheus-bp/</guid>
+      <description>Prometheus 是一个开源监控系统，它本身已经成为了云原生中指标监控的事实标准，几乎所有 k8s 的核心组件以及其它云原生系统都以 Prometheus 的指标格式输出自己的运行时监控</description>
+    </item>
+    
+    <item>
+      <title>关于我</title>
+      <link>https://www.aleiwu.com/about/</link>
+      <pubDate>Fri, 15 Feb 2019 19:52:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/about/</guid>
+      <description>你好！我是吴叶磊，朋友们一般喊我阿磊。 最让我有成就感和满足感的事情是有人肯定我的价值。我曾经非常努力地去读书、打游戏、参加社团、写代码以及鼓</description>
+    </item>
+    
+    <item>
+      <title>写在19年初的后端社招面试经历(两年经验): 蚂蚁 头条 PingCAP</title>
+      <link>https://www.aleiwu.com/post/interview-experience/</link>
+      <pubDate>Mon, 28 Jan 2019 22:52:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/interview-experience/</guid>
+      <description>去年（18年）年底想出来看看机会，最后很幸运地拿到了 PingCAP，今日头条的 offer 以及蚂蚁金服的口头 offer。想着可以总结一下经验，分享一下</description>
+    </item>
+    
+    <item>
+      <title>云原生下的日志新玩法: Grafana loki 源码解析</title>
+      <link>https://www.aleiwu.com/post/grafana-loki/</link>
+      <pubDate>Fri, 14 Dec 2018 22:52:03 +0800</pubDate>
+      
+      <guid>https://www.aleiwu.com/post/grafana-loki/</guid>
+      <description>注意: loki 项目现在还处于早期阶段, 下面的内容可能会很快过时 Grafana loki 简介 在刚刚过去的 KubeCon 北美站上, Grafana 发布了名为 &amp;ldquo;loki&amp;rdquo; 的新项目, 用于解决云原生架构下的日志收</description>
+    </item>
+    
+  </channel>
+</rss>

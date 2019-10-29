@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="我的 Promtheus 到底啥时候报警？">
+<meta itemprop="description" content="最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始">
+
+
+<meta itemprop="dateModified" content="2019-10-29T13:28:39&#43;08:00" />
+<meta itemprop="wordCount" content="1616">
+
+
+
+<meta itemprop="keywords" content="kubernetes,prometheus," />
+<meta property="og:title" content="我的 Promtheus 到底啥时候报警？" />
+<meta property="og:description" content="最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.aleiwu.com/post/prometheus-alert-why/" />
+<meta property="article:published_time" content="2019-10-29T13:27:12+08:00" />
+<meta property="article:modified_time" content="2019-10-29T13:28:39+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="我的 Promtheus 到底啥时候报警？"/>
+<meta name="twitter:description" content="最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题： 我的 Prometheus 为啥报警？ 我的 Prometheus 为啥不报警？ 从 for 参数开始"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>我的 Promtheus 到底啥时候报警？</title>
+	<link rel="stylesheet" href="https://www.aleiwu.com/css/style.min.f2a045eb7f51332133e15e6ab816df1a2983a3824432b3f3831a93971a8f06b0.css">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp faster">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://www.aleiwu.com">Aylei&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					<a href="https://www.aleiwu.com/post/">文章</a>
+					<a href="https://www.aleiwu.com/about/">关于</a>
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://twitter.com/AyleiWu" target="_blank" rel="noopener me" title="Twitter"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-twitter"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a><a href="https://github.com/aylei" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-github"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a><a href="rayingecho@gmail.com" target="_blank" rel="noopener me" title="Email"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://www.aleiwu.com/post/">文章</a></li>
+			<li><a href="https://www.aleiwu.com/about/">关于</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Oct 29, 2019</span></div>
+				<h1>我的 Promtheus 到底啥时候报警？</h1>
+			</header>
+			<div class="content">
+				
+
+<p>最近又被问到了 Prometheus 为啥不报警，恰好回忆起之前经常解答相关问题，不妨写一篇文章来解决下面两个问题：</p>
+
+<ul>
+<li><strong>我的 Prometheus 为啥报警？</strong></li>
+<li><strong>我的 Prometheus 为啥不报警？</strong></li>
+</ul>
+
+<h2 id="从-for-参数开始">从 for 参数开始<a href="#从-for-参数开始" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>我们首先需要一些背景知识：Prometheus 是如何计算并产生警报的？</p>
+
+<p>看一条简单的警报规则：</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">-<span class="w"> </span>alert<span class="p">:</span><span class="w"> </span>KubeAPILatencyHigh<span class="w">
+</span><span class="w">  </span>annotations<span class="p">:</span><span class="w">
+</span><span class="w">    </span>message<span class="p">:</span><span class="w"> </span>The<span class="w"> </span>API<span class="w"> </span>server<span class="w"> </span>has<span class="w"> </span>a<span class="w"> </span>99th<span class="w"> </span>percentile<span class="w"> </span>latency<span class="w"> </span>of<span class="w"> </span>{{<span class="w"> </span>$value<span class="w"> </span>}}<span class="w"> </span>seconds<span class="w">
+</span><span class="w">      </span>for<span class="w"> </span>{{<span class="w"> </span>$labels.verb<span class="w"> </span>}}<span class="w"> </span>{{<span class="w"> </span>$labels.resource<span class="w"> </span>}}.<span class="w">
+</span><span class="w">  </span>expr<span class="p">:</span><span class="w"> </span><span class="sd">|
+</span><span class="sd">    cluster_quantile:apiserver_request_latencies:histogram_quantile{job=&#34;apiserver&#34;,quantile=&#34;0.99&#34;,subresource!=&#34;log&#34;} &gt; 4</span><span class="w">
+</span><span class="w">  </span>for<span class="p">:</span><span class="w"> </span>10m<span class="w">
+</span><span class="w">  </span>labels<span class="p">:</span><span class="w">
+</span><span class="w">    </span>severity<span class="p">:</span><span class="w"> </span>critical</code></pre></div>
+<p>这条警报的*大致*含义是，假如 kube-apiserver 的 P99 响应时间大于 4 秒，并持续 10 分钟以上，就产生报警。</p>
+
+<p>首先要注意的是由 `for` 指定的 Pending Duration。这个参数主要用于降噪，很多类似响应时间这样的指标都是有抖动的，通过指定 Pending Duration，我们可以
+过滤掉这些瞬时抖动，让 on-call 人员能够把注意力放在真正有持续影响的问题上。</p>
+
+<p>那么显然，下面这样的状况是不会触发这条警报规则的，因为虽然指标已经达到了警报阈值，但持续时间并不够长：</p>
+
+<figure>
+    <img src="/prometheus-peaks.png" width="800px"/> 
+</figure>
+
+
+<p>但偶尔我们也会碰到更奇怪的事情。</p>
+
+<h2 id="为什么不报警">为什么不报警？<a href="#为什么不报警" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><img src="/no-alert.jpg" alt="no-alert.jpg" width="800px" />
+<em>(图二: 为啥不报警)</em></p>
+
+<p>类似上面这样持续超出阈值的场景，为什么有时候会不报警呢？</p>
+
+<h2 id="为什么报警">为什么报警？<a href="#为什么报警" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p><img src="/why-alert.jpg" alt="why-alert.jpg" width="800px" />
+<em>(图三: 为啥会报警)</em></p>
+
+<p>类似上面这样并未持续超出阈值的场景，为什么有时又会报警呢？</p>
+
+<h2 id="采样间隔">采样间隔<a href="#采样间隔" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>这其实都源自于 Prometheus 的数据存储方式与计算方式。</p>
+
+<p>首先，Prometheus 按照配置的抓取间隔(`scrape_interval`)定时抓取指标数据，因此存储的是形如 (timestamp, value) 这样的采样点。</p>
+
+<p>对于警报， Prometheus 会按固定的时间间隔重复计算每条警报规则，因此警报规则计算得到的只是稀疏的采样点，而警报持续时间是否大于
+`for` 指定的 Pending Duration 则是由这些稀疏的采样点决定的。</p>
+
+<p>而在 Grafana 渲染图表时，Grafana 发送给 Prometheus 的是一个 Range Query，其执行机制是从时间区间的起始点开始，每隔一定的时间点（由 Range Query 的 `step` 请求参数决定）
+进行一次计算采样。</p>
+
+<p>这些结合在一起，就会导致警报规则计算时“看到的内容”和我们在 Grafana 图表上观察到的内容不一致，比如下面这张示意图：</p>
+
+<figure>
+    <img src="/alert-firing.jpg" width="800px"/> 
+</figure>
+
+
+<p>上面图中，圆点代表原始采样点：</p>
+
+<ul>
+<li>40s 时，第一次计算，低于阈值</li>
+<li>80s 时，第二次计算，高于阈值，进入 Pending 状态</li>
+<li>120s 时，第三次计算，仍然高于阈值，90s 处的原始采样点虽然低于阈值，但是警报规则计算时并没有”看到它“</li>
+<li>160s 时，第四次计算，高于阈值，Pending 达到 2 分钟，进入 firing 状态</li>
+<li>持续高于阈值</li>
+<li>直到 360s 时，计算得到低于阈值，警报消除</li>
+</ul>
+
+<p>由于采样是稀疏的，部分采样点会出现被跳过的状况，而当 Grafana 渲染图表时，取决于 Range Query 中采样点的分布，图表则有可能捕捉到
+被警报规则忽略掉的”低谷“（图三)或者也可能无法捕捉到警报规则碰到的”低谷“（图二）。如此这般，我们就被”图表“给蒙骗过去，质疑起警报来了。</p>
+
+<h2 id="如何应对">如何应对<a href="#如何应对" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>首先嘛， Prometheus 作为一个指标系统天生就不是精确的——由于指标本身就是稀疏采样的，事实上所有的图表和警报都是&rdquo;估算&rdquo;，我们也就不必
+太纠结于图表和警报的对应性，能够帮助我们发现问题解决问题就是一个好监控系统。当然，有时候我们也得证明这个警报确实没问题，那可以看一眼
+`ALERTS` 指标。`ALERTS` 是 Prometheus 在警报计算过程中维护的内建指标，它记录每个警报从 Pending 到 Firing 的整个历史过程，拉出来一看也就清楚了。</p>
+
+<p>但有时候 ALERTS 的说服力可能还不够，因为它本身并没有记录每次计算出来的值到底是啥，而在我们回头去考证警报时，又无法选取出和警报计算过程中一模一样的计算时间点，
+因此也就无法还原警报计算时看到的计算值究竟是啥。这时候终极解决方案就是把警报所要计算的指标定义成一条 Recording Rule，计算出一个新指标来记录计算值，然后针对这个
+新指标做阈值报警。kube-prometheus 的警报规则中就大量采用了<a href="https://github.com/coreos/kube-prometheus/blob/03b36af546c26ef6106c4fd141a948293ec0a18f/manifests/prometheus-rules.yaml#L201">这种技术</a>。</p>
+
+<h2 id="到此为止了吗">到此为止了吗？<a href="#到此为止了吗" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+
+<p>Prometheus 警报不仅包含 Prometheus 本身，还包含用于警报治理的 Alertmanager，我们可以看一看上面那张指标计算示意图的全图：</p>
+
+<figure>
+    <img src="/alert-overview.jpg" width="800px"/> 
+</figure>
+
+
+<p>在警报产生后，还要经过 Alertmanager 的分组、抑制处理、静默处理、去重处理和降噪处理最后再发送给接收者。而这个过程也有大量的因素可能会导致警报产生了却最终
+没有进行通知。这部分的内容，之前的文章 <a href="https://aleiwu.com/post/alertmanager/">搞搞 Prometheus：Alertmanager</a> 已经涵盖，这两篇内容加在一起，也算是能把开头的两个问题解答得差不多了吧😂。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://www.aleiwu.com/tags/kubernetes">kubernetes</a></span><span class="tag"><a href="https://www.aleiwu.com/tags/prometheus">prometheus</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1616 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2019-10-29 05:27</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit"><circle cx="12" cy="12" r="4"></circle><line x1="1.05" y1="12" x2="7" y2="12"></line><line x1="17.01" y1="12" x2="22.96" y2="12"></line></svg><a href="https://github.com/aylei/blog/commit/3851df7cf187631c398969b35e5ff8503a3d3f12" target="_blank" rel="noopener">3851df7</a> @ 2019-10-29</p>
+			</footer>
+		</article>
+		<aside id="toc" class="show-toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#从-for-参数开始">从 for 参数开始</a></li>
+<li><a href="#为什么不报警">为什么不报警？</a></li>
+<li><a href="#为什么报警">为什么报警？</a></li>
+<li><a href="#采样间隔">采样间隔</a></li>
+<li><a href="#如何应对">如何应对</a></li>
+<li><a href="#到此为止了吗">到此为止了吗？</a></li>
+</ul></li>
+</ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://www.aleiwu.com/post/qcon-tidb-operator/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>高效编排有状态应用 —— TiDB 的云原生实践与思考</span>
+			</a>
+			<a class="prev-post" href="https://www.aleiwu.com/post/configmap-rollout-followup/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Kubernetes 中的 ConfigMap 配置更新(续)</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+			<script src="https://utteranc.es/client.js"
+							repo="aylei/blog"
+							issue-term="pathname"
+							theme="github-light"
+							crossorigin="anonymous"
+							async>
+			</script>
+		</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2019 <a href="https://www.aleiwu.com">吴叶磊</a> &#183; <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://www.aleiwu.com/post/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+	<script src="https://www.aleiwu.com/js/main.min.784417f5847151f848c339cf0acb13a06cbb648b1483435a28ed4556c4ead69b.js"></script>
+<script type="application/javascript">
+var doNotTrack = false;
+if (!doNotTrack) {
+	window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+	ga('create', 'UA-130696996-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+<script async src='https://www.google-analytics.com/analytics.js'></script>
+
+
+</body>
+
+</html>
